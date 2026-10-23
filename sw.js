@@ -50,6 +50,7 @@ self.addEventListener("fetch", (event) => {
       })
       .catch(async () => {
         const cached = await caches.match(request);
+
         if (cached) return cached;
 
         if (request.mode === "navigate") {
