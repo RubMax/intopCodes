@@ -135,7 +135,7 @@
     <canvas id="canvas"></canvas>
 
     <script>
-        // --- LOGIQUE JAVASCRIPT ---
+        // --- LOGIQUE JAVASCRIPT CORRIGÉE ---
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const captureBtn = document.getElementById('capture-btn');
@@ -146,20 +146,24 @@
         let listeNoms = [];
 
         // 1. Accéder à la caméra arrière du téléphone
-        navigator.mediaDevices.getUserMedia({ 
-            video: { 
-                facingMode: { ideal: "environment" } // Force l'utilisation de la caméra arrière
-            }, 
-            audio: false 
-        })
-        .then(stream => {
-            video.srcObject = stream;
-            statusDiv.innerText = "Placez le nom du destinataire dans le rectangle pointillé.";
-        })
-        .catch(err => {
-            console.error("Erreur caméra: ", err);
-            statusDiv.innerText = "Impossible d'accéder à la caméra. Vérifiez les autorisations.";
-        });
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: { ideal: "environment" } // Force l'utilisation de la caméra arrière
+                }, 
+                audio: false 
+            })
+            .then(stream => {
+                video.srcObject = stream;
+                statusDiv.innerText = "Placez le nom du destinataire dans le rectangle pointillé.";
+            })
+            .catch(err => {
+                console.error("Erreur caméra: ", err);
+                statusDiv.innerText = "Impossible d'accéder à la caméra. Vérifiez les autorisations.";
+            });
+        } else {
+            statusDiv.innerText = "Votre navigateur ne supporte pas l'accès à la caméra.";
+        }
 
         // 2. Capturer la photo et lancer l'OCR
         captureBtn.addEventListener('click', () => {
@@ -179,7 +183,7 @@
             // Lancer la reconnaissance de texte (Français)
             Tesseract.recognize(dataUrl, 'fra')
             .then(({ data: { text } }) => {
-                // Nettoyer le texte reçu (enlever les retours à la ligne superflus, etc.)
+                // Nettoyer le texte reçu
                 let nomDetecte = nettoyerTexte(text);
 
                 if (nomDetecte) {
@@ -198,8 +202,9 @@
             });
         });
 
-        // 3. Fonction pour nettoyer le texte extrait par l'OCR
-        function nettoyerTexte(texte Brut) {
+        // 3. Fonction pour nettoyer le texte extrait par l'OCR (CORRIGÉE ICI)
+        function nettoyerTexte(texteBrut) {
+            if (!texteBrut) return null;
             // Supprime les caractères spéciaux inutiles et garde les lettres/espaces
             let propre = texteBrut.replace(/[^a-zA-ZÀ-ÿ\s]/g, '').trim();
             // On prend généralement la première ligne si le bloc de texte contient plusieurs lignes
@@ -232,5 +237,6 @@
             });
         }
     </script>
+
 </body>
 </html>
