@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner de Colis Pro</title>
     <style>
+        /* --- STYLE VISUEL --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7f6;
@@ -40,7 +41,7 @@
             object-fit: cover;
         }
 
-        /* Viseur centré amélioré */
+        /* Viseur bleu centré pour cibler le nom */
         .overlay {
             position: absolute;
             top: 50%;
@@ -127,40 +128,40 @@
             font-weight: 500;
         }
 
-        /* Zone masquée pour le traitement d'image technique */
         #hidden-assets {
             display: none;
         }
     </style>
-    <!-- Utilisation de la version stable v5 de Tesseract.js du CDN officiel -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Chargement officiel de la bibliothèque Tesseract.js v5 -->
+    <script src="https://jsdelivr.net"></script>
 </head>
 <body>
 
     <h1>📦 Scanner de Colis</h1>
-    <div id="status">Initialisation du moteur de lecture...</div>
+    <div id="status">Ouverture de la caméra...</div>
 
-    <!-- Zone Caméra avec Viseur -->
+    <!-- Zone Caméra avec le Viseur pointillé -->
     <div class="camera-container">
         <video id="video" autoplay playsinline></video>
         <div class="overlay"></div>
     </div>
 
-    <!-- BOUTON DEMANDÉ : Clic pour lire quand c'est centré -->
+    <!-- BOUTON : Cliquer pour lire lorsque le nom est bien centré -->
     <button class="btn" id="capture-btn" disabled>Scanner le nom centré</button>
 
-    <!-- Liste triée -->
+    <!-- Liste dynamique triée par ordre alphabétique -->
     <div class="list-container">
         <h2>📋 Destinataires (Ordre Alphabétique)</h2>
         <ol id="destinataires-list"></ol>
     </div>
 
-    <!-- Éléments techniques invisibles pour découper la photo -->
+    <!-- Toile technique de capture d'image (cachée) -->
     <div id="hidden-assets">
         <canvas id="canvas"></canvas>
     </div>
 
     <script>
+        // --- LOGIQUE APPLICATION ---
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const captureBtn = document.getElementById('capture-btn');
@@ -170,27 +171,12 @@
         let listeNoms = [];
         let tesseractWorker = null;
 
-        // Étape 1 : Initialiser proprement le moteur Tesseract.js v5 (Moteur OCR)
-        async function initOCR() {
-            try {
-                statusDiv.innerText = "Chargement du dictionnaire français...";
-                // Version moderne de l'initialisation du Worker sur Tesseract v5
-                tesseractWorker = await Tesseract.createWorker('fra');
-                
-                statusDiv.innerText = "Prêt ! Activez votre caméra.";
-                startCamera();
-            } catch (err) {
-                console.error("Erreur OCR:", err);
-                statusDiv.innerText = "Erreur de chargement du moteur de lecture. Vérifiez votre connexion.";
-            }
-        }
-
-        // Étape 2 : Activer la caméra arrière du téléphone
+        // Étape 1 : Activer la caméra DIRECTEMENT dès l'ouverture de la page
         function startCamera() {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ 
                     video: { 
-                        facingMode: { ideal: "environment" },
+                        facingMode: { ideal: "environment" }, // Force la caméra arrière du smartphone
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     }, 
@@ -198,82 +184,95 @@
                 })
                 .then(stream => {
                     video.srcObject = stream;
-                    statusDiv.innerText = "Alignez le nom dans le rectangle bleu pointillé puis cliquez sur le bouton.";
-                    captureBtn.disabled = false; // On active le bouton une fois que tout est prêt
+                    statusDiv.innerText = "Caméra active. Initialisation du moteur de lecture...";
+                    // Une fois la vidéo démarrée, on prépare le moteur d'écriture en arrière-plan
+                    initOCR();
                 })
                 .catch(err => {
                     console.error("Erreur caméra: ", err);
-                    statusDiv.innerText = "Accès caméra refusé ou non trouvé. Autorisez l'appareil photo.";
+                    statusDiv.innerText = "Erreur d'accès à la caméra. Veuillez accorder les permissions requises.";
                 });
             } else {
-                statusDiv.innerText = "Navigateur non compatible avec la caméra.";
+                statusDiv.innerText = "Votre navigateur internet ne supporte pas l'utilisation de la caméra.";
             }
         }
 
-        // Étape 3 : Clic sur le bouton -> Capturer, découper l'image (Crop) et lire
+        // Étape 2 : Préparer Tesseract en tâche de fond
+        async function initOCR() {
+            try {
+                tesseractWorker = await Tesseract.createWorker('fra');
+                statusDiv.innerText = "Prêt ! Alignez le nom dans le rectangle bleu et cliquez sur le bouton.";
+                captureBtn.disabled = false; // Le bouton devient cliquable
+            } catch (err) {
+                console.error("Erreur OCR:", err);
+                statusDiv.innerText = "Erreur de chargement du lecteur. Vous pouvez tout de même tenter un scan.";
+                captureBtn.disabled = false;
+            }
+        }
+
+        // Étape 3 : Gestion du Clic sur le Bouton de scan
         captureBtn.addEventListener('click', async () => {
-            statusDiv.innerText = "📸 Capture et analyse du texte...";
+            statusDiv.innerText = "📸 Capture de la zone et analyse de l'image...";
             captureBtn.disabled = true;
 
-            const ctx = canvas.getContext('2d');
-            
-            // On récupère la vraie taille du flux vidéo de la caméra
-            const videoWidth = video.videoWidth;
-            const videoHeight = video.videoHeight;
-            
-            canvas.width = videoWidth;
-            canvas.height = videoHeight;
-            
-            // Étape technique essentielle : On dessine la frame vidéo complète sur un canvas temporaire
-            ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
-
-            // Pour une meilleure précision, on calcule la zone exacte correspondant au viseur pointillé (85% de large, 60px de haut au centre)
-            // On applique ce ratio à la taille réelle de la vidéo
-            const cropWidth = videoWidth * 0.85;
-            const cropHeight = (60 / video.clientHeight) * videoHeight; 
-            const cropX = (videoWidth - cropWidth) / 2;
-            const cropY = (videoHeight - cropHeight) / 2;
-
-            // On crée un deuxième canvas de la taille exacte du viseur pour isoler le texte
-            const cropCanvas = document.createElement('canvas');
-            cropCanvas.width = cropWidth;
-            cropCanvas.height = cropHeight;
-            const cropCtx = cropCanvas.getContext('2d');
-            
-            // Copie uniquement la zone du viseur
-            cropCtx.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-            
-            const croppedDataUrl = cropCanvas.toDataURL('image/jpeg');
-
             try {
-                // Lancement de la reconnaissance sur l'image découpée
-                const { data: { text } } = await tesseractWorker.recognize(croppedDataUrl);
+                const ctx = canvas.getContext('2d');
+                const videoWidth = video.videoWidth;
+                const videoHeight = video.videoHeight;
                 
+                canvas.width = videoWidth;
+                canvas.height = videoHeight;
+                
+                // On prend la photo globale de la caméra
+                ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+
+                // On calcule le découpage exact de la boîte centrale (Viseur pointillé)
+                const cropWidth = videoWidth * 0.85;
+                const cropHeight = (60 / video.clientHeight) * videoHeight; 
+                const cropX = (videoWidth - cropWidth) / 2;
+                const cropY = (videoHeight - cropHeight) / 2;
+
+                // Création d'un mini-canvas contenant uniquement la zone utile (le nom)
+                const cropCanvas = document.createElement('canvas');
+                cropCanvas.width = cropWidth;
+                cropCanvas.height = cropHeight;
+                const cropCtx = cropCanvas.getContext('2d');
+                
+                cropCtx.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                const croppedDataUrl = cropCanvas.toDataURL('image/jpeg');
+
+                // Secours réseau si le chargement initial avait échoué
+                if (!tesseractWorker) {
+                    tesseractWorker = await Tesseract.createWorker('fra');
+                }
+
+                // Soumission de la zone découpée au moteur OCR
+                const { data: { text } } = await tesseractWorker.recognize(croppedDataUrl);
                 let nomDetecte = nettoyerTexte(text);
 
                 if (nomDetecte) {
                     ajouterEtTrierNom(nomDetecte);
-                    statusDiv.innerHTML = `✅ Succès ! <br>Nom enregistré : <strong>${nomDetecte}</strong>`;
+                    statusDiv.innerHTML = `✅ Enregistré : <strong>${nomDetecte}</strong>`;
                 } else {
-                    statusDiv.innerText = "❌ Lecture difficile... Assurez-vous que le texte soit bien net, droit et sans ombre.";
+                    statusDiv.innerText = "❌ Texte non reconnu. Vérifiez l'alignement, la netteté et réessayez.";
                 }
             } catch (ocrError) {
-                console.error("Erreur durant la reconnaissance :", ocrError);
-                statusDiv.innerText = "Erreur technique lors de l'analyse.";
+                console.error("Erreur technique :", ocrError);
+                statusDiv.innerText = "Une erreur est survenue pendant le traitement de l'image.";
             } finally {
                 captureBtn.disabled = false;
             }
         });
 
-        // Étape 4 : Nettoyage fin de la chaîne détectée
+        // Étape 4 : Filtrer les impuretés de lecture
         function nettoyerTexte(texteBrut) {
             if (!texteBrut) return null;
-            // Ne garder que lettres, espaces et tirets (supprime la ponctuation parasite lue par erreur)
+            // Supprime la ponctuation parasite lue par erreur, garde les lettres, espaces et tirets
             let propre = texteBrut.replace(/[^a-zA-ZÀ-ÿ\s-]/g, '').trim();
-            // On divise par ligne et prend la plus cohérente
+            // Découpage par ligne, élimination des lignes vides ou trop courtes (moins de 3 caractères)
             let lignes = propre.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-            return lignes.length > 0 ? lignes[0] : null;
+            return lignes.length > 0 ? lignes[0] : null; // Extrait la première ligne valide
         }
 
-        // Étape 5 : Enregistrement et tri automatique
+        // Étape 5 : Ajouter à la liste et appliquer le tri alphabétique
         function ajouterEtTrierNom(nom) {
