@@ -1,0 +1,22 @@
+
+{
+  "id": "./",
+  "name": "Liste Colis - Destinataires",
+  "short_name": "Liste Colis",
+  "description": "Photographiez les étiquettes et organisez les destinataires de colis.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef4f8",
+  "theme_color": "#1769aa",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
