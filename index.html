@@ -1,278 +1,156 @@
-<!DOCTYPE html>
+from pathlib import Path
+p=Path('/mnt/data/colis_destinataires.html')
+html=r'''<!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner de Colis Pro</title>
-    <style>
-        /* --- STYLE VISUEL --- */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        h1, h2 {
-            color: #2c3e50;
-            margin: 10px 0;
-            font-size: 1.5rem;
-            text-align: center;
-        }
-
-        .camera-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            height: 250px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            background: #000;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Viseur bleu centré pour cibler le nom */
-        .overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 85%;
-            height: 60px;
-            border: 3px dashed #00bcd4;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
-            pointer-events: none;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .overlay::after {
-            content: "CENTRER LE NOM ICI";
-            color: #00bcd4;
-            font-size: 10px;
-            font-weight: bold;
-            background: rgba(0,0,0,0.6);
-            padding: 2px 6px;
-            border-radius: 3px;
-            letter-spacing: 1px;
-        }
-
-        .btn {
-            background-color: #00bcd4;
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            margin: 15px 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.2s;
-            width: 100%;
-            max-width: 400px;
-            text-transform: uppercase;
-        }
-
-        .btn:active {
-            background-color: #0097a7;
-            transform: scale(0.98);
-        }
-
-        .btn:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-
-        #status {
-            font-size: 14px;
-            font-weight: 500;
-            color: #7f8c8d;
-            margin-bottom: 10px;
-            text-align: center;
-            min-height: 40px;
-            padding: 0 10px;
-        }
-
-        .list-container {
-            width: 100%;
-            max-width: 400px;
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            box-sizing: border-box;
-        }
-
-        ol {
-            padding-left: 20px;
-            margin: 0;
-        }
-
-        li {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        #hidden-assets {
-            display: none;
-        }
-    </style>
-    <!-- Chargement officiel de la bibliothèque Tesseract.js v5 -->
-    <script src="https://jsdelivr.net"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liste Colis</title>
+<style>
+:root {
+  --site-primary:#1769aa;
+  --site-secondary:#16a085;
+  --site-background:#eef4f8;
+  --site-on-primary:#ffffff;
+  --site-on-secondary:#ffffff;
+  --site-on-background:#183047;
+  --site-font-body:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --site-font-heading:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --site-heading-scale:1;
+  --site-spacing-scale:1;
+  --site-radius-scale:1;
+  --site-decoration-opacity:1;
+  color-scheme:light dark;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--site-font-body);background:light-dark(#eef4f8,#111923);color:light-dark(#183047,#edf4fb)}
+#app{min-height:100vh;width:100%;background-color:light-dark(#eef4f8,#111923);border-radius:0}
+header{background:var(--site-primary);color:#fff;padding:24px 18px 30px}
+.head{max-width:760px;margin:auto}
+.eyebrow{font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;opacity:.85;font-weight:700}
+h1{font-family:var(--site-font-heading);font-size:calc(2rem * var(--site-heading-scale));margin:7px 0}
+header p{margin:0;opacity:.9}
+main{max-width:760px;margin:-14px auto 0;padding:0 14px 34px}
+.panel{background:light-dark(#fff,#1c2734);border:1px solid light-dark(#dce6ee,#344354);border-radius:calc(18px * var(--site-radius-scale));padding:calc(18px * var(--site-spacing-scale));margin-bottom:14px;box-shadow:0 7px 22px #102b4010}
+h2{font-size:1.08rem;margin:0 0 14px}
+.camera-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button,.file-button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px 14px;cursor:pointer;text-align:center}
+.primary{background:var(--site-primary);color:#fff}
+.secondary{background:var(--site-secondary);color:#fff}
+.subtle{background:light-dark(#eaf1f7,#2a3949);color:light-dark(#183047,#edf4fb)}
+button:focus-visible,input:focus-visible{outline:3px solid #f0b429;outline-offset:2px}
+#preview{display:none;width:100%;max-height:250px;object-fit:contain;margin-top:14px;border-radius:12px;background:#111}
+label{display:block;font-size:.9rem;font-weight:700;margin:15px 0 7px}
+input[type=text],input[type=search]{width:100%;padding:13px;border:1px solid light-dark(#cbd8e2,#455568);border-radius:11px;background:light-dark(#fff,#131c26);color:inherit;font:inherit}
+.actions{display:flex;gap:9px;margin-top:12px}
+.actions button{flex:1}
+.hint{font-size:.85rem;line-height:1.5;color:light-dark(#5d7182,#b2c0ce);margin:12px 0 0}
+.statline{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.count{font-size:.82rem;color:light-dark(#5d7182,#b2c0ce)}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid light-dark(#e7edf2,#344354)}
+.initial{width:40px;height:40px;border-radius:12px;background:light-dark(#e1f3ef,#173f3a);color:var(--site-secondary);display:grid;place-items:center;font-weight:800;flex-shrink:0}
+.person{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:650}
+.remove{padding:8px 10px;background:transparent;color:light-dark(#a33,#ff9898);font-size:.85rem}
+.empty{text-align:center;padding:22px 8px;color:light-dark(#637789,#b2c0ce)}
+footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padding:6px 0 22px}
+@media(min-width:600px){header{padding-top:32px}main{padding-left:20px;padding-right:20px}.panel{padding:24px}}
+</style>
 </head>
 <body>
-
-    <h1>📦 Scanner de Colis</h1>
-    <div id="status">Ouverture de la caméra...</div>
-
-    <!-- Zone Caméra avec le Viseur pointillé -->
-    <div class="camera-container">
-        <video id="video" autoplay playsinline></video>
-        <div class="overlay"></div>
-    </div>
-
-    <!-- BOUTON : Cliquer pour lire lorsque le nom est bien centré -->
-    <button class="btn" id="capture-btn" disabled>Scanner le nom centré</button>
-
-    <!-- Liste dynamique triée par ordre alphabétique -->
-    <div class="list-container">
-        <h2>📋 Destinataires (Ordre Alphabétique)</h2>
-        <ol id="destinataires-list"></ol>
-    </div>
-
-    <!-- Toile technique de capture d'image (cachée) -->
-    <div id="hidden-assets">
-        <canvas id="canvas"></canvas>
-    </div>
-
-    <script>
-        // --- LOGIQUE APPLICATION ---
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const captureBtn = document.getElementById('capture-btn');
-        const statusDiv = document.getElementById('status');
-        const listOl = document.getElementById('destinataires-list');
-
-        let listeNoms = [];
-        let tesseractWorker = null;
-
-        // Étape 1 : Activer la caméra DIRECTEMENT dès l'ouverture de la page
-        function startCamera() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: { ideal: "environment" }, // Force la caméra arrière du smartphone
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }, 
-                    audio: false 
-                })
-                .then(stream => {
-                    video.srcObject = stream;
-                    statusDiv.innerText = "Caméra active. Initialisation du moteur de lecture...";
-                    // Une fois la vidéo démarrée, on prépare le moteur d'écriture en arrière-plan
-                    initOCR();
-                })
-                .catch(err => {
-                    console.error("Erreur caméra: ", err);
-                    statusDiv.innerText = "Erreur d'accès à la caméra. Veuillez accorder les permissions requises.";
-                });
-            } else {
-                statusDiv.innerText = "Votre navigateur internet ne supporte pas l'utilisation de la caméra.";
-            }
-        }
-
-        // Étape 2 : Préparer Tesseract en tâche de fond
-        async function initOCR() {
-            try {
-                tesseractWorker = await Tesseract.createWorker('fra');
-                statusDiv.innerText = "Prêt ! Alignez le nom dans le rectangle bleu et cliquez sur le bouton.";
-                captureBtn.disabled = false; // Le bouton devient cliquable
-            } catch (err) {
-                console.error("Erreur OCR:", err);
-                statusDiv.innerText = "Erreur de chargement du lecteur. Vous pouvez tout de même tenter un scan.";
-                captureBtn.disabled = false;
-            }
-        }
-
-        // Étape 3 : Gestion du Clic sur le Bouton de scan
-        captureBtn.addEventListener('click', async () => {
-            statusDiv.innerText = "📸 Capture de la zone et analyse de l'image...";
-            captureBtn.disabled = true;
-
-            try {
-                const ctx = canvas.getContext('2d');
-                const videoWidth = video.videoWidth;
-                const videoHeight = video.videoHeight;
-                
-                canvas.width = videoWidth;
-                canvas.height = videoHeight;
-                
-                // On prend la photo globale de la caméra
-                ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
-
-                // On calcule le découpage exact de la boîte centrale (Viseur pointillé)
-                const cropWidth = videoWidth * 0.85;
-                const cropHeight = (60 / video.clientHeight) * videoHeight; 
-                const cropX = (videoWidth - cropWidth) / 2;
-                const cropY = (videoHeight - cropHeight) / 2;
-
-                // Création d'un mini-canvas contenant uniquement la zone utile (le nom)
-                const cropCanvas = document.createElement('canvas');
-                cropCanvas.width = cropWidth;
-                cropCanvas.height = cropHeight;
-                const cropCtx = cropCanvas.getContext('2d');
-                
-                cropCtx.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-                const croppedDataUrl = cropCanvas.toDataURL('image/jpeg');
-
-                // Secours réseau si le chargement initial avait échoué
-                if (!tesseractWorker) {
-                    tesseractWorker = await Tesseract.createWorker('fra');
-                }
-
-                // Soumission de la zone découpée au moteur OCR
-                const { data: { text } } = await tesseractWorker.recognize(croppedDataUrl);
-                let nomDetecte = nettoyerTexte(text);
-
-                if (nomDetecte) {
-                    ajouterEtTrierNom(nomDetecte);
-                    statusDiv.innerHTML = `✅ Enregistré : <strong>${nomDetecte}</strong>`;
-                } else {
-                    statusDiv.innerText = "❌ Texte non reconnu. Vérifiez l'alignement, la netteté et réessayez.";
-                }
-            } catch (ocrError) {
-                console.error("Erreur technique :", ocrError);
-                statusDiv.innerText = "Une erreur est survenue pendant le traitement de l'image.";
-            } finally {
-                captureBtn.disabled = false;
-            }
-        });
-
-        // Étape 4 : Filtrer les impuretés de lecture
-        function nettoyerTexte(texteBrut) {
-            if (!texteBrut) return null;
-            // Supprime la ponctuation parasite lue par erreur, garde les lettres, espaces et tirets
-            let propre = texteBrut.replace(/[^a-zA-ZÀ-ÿ\s-]/g, '').trim();
-            // Découpage par ligne, élimination des lignes vides ou trop courtes (moins de 3 caractères)
-            let lignes = propre.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-            return lignes.length > 0 ? lignes[0] : null; // Extrait la première ligne valide
-        }
-
-        // Étape 5 : Ajouter à la liste et appliquer le tri alphabétique
-        function ajouterEtTrierNom(nom) {
+<div id="app">
+<header><div class="head"><div class="eyebrow">Organisation des colis</div><h1>Liste des destinataires</h1><p>Prenez une photo, ajoutez le nom et retrouvez-le par ordre alphabétique.</p></div></header>
+<main>
+<section class="panel">
+<h2>① Photographier l’étiquette</h2>
+<div class="camera-row">
+<label class="file-button primary" for="camera" style="margin:0">📷 Ouvrir la caméra</label>
+<label class="file-button subtle" for="gallery" style="margin:0">🖼️ Choisir une photo</label>
+</div>
+<input id="camera" type="file" accept="image/*" capture="environment" hidden>
+<input id="gallery" type="file" accept="image/*" hidden>
+<img id="preview" alt="Aperçu de l'étiquette du colis">
+<p class="hint">Conseil : placez l’étiquette bien à plat, avec une bonne lumière. La photo reste sur cet appareil.</p>
+<label for="name">Nom du destinataire</label>
+<input id="name" type="text" maxlength="140" placeholder="Ex. : Maria Santos" autocomplete="off">
+<div class="actions">
+<button class="secondary" id="add">＋ Enregistrer le nom</button>
+<button class="subtle" id="clear">Effacer</button>
+</div>
+<p class="hint" id="status" aria-live="polite">La reconnaissance automatique du texte (OCR) n’est pas intégrée dans cette version : vérifiez l’étiquette et saisissez le nom ci-dessus.</p>
+</section>
+<section class="panel">
+<div class="statline"><h2 style="margin:0">② Liste alphabétique</h2><span class="count" id="count">0 nom</span></div>
+<input id="search" type="search" placeholder="🔎 Rechercher un destinataire…" aria-label="Rechercher un destinataire">
+<ul id="list" style="margin-top:10px"></ul>
+<div id="empty" class="empty">Aucun nom enregistré pour le moment.</div>
+<div class="actions">
+<button class="subtle" id="export">Exporter la liste (.txt)</button>
+<button class="subtle" id="deleteAll">Tout supprimer</button>
+</div>
+</section>
+<footer>Les noms sont conservés dans le stockage local de ce navigateur.</footer>
+</main>
+</div>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ const KEY='liste_colis_destinataires_v1';
+ let people=[];
+ try{people=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(people))people=[];}catch(e){people=[];}
+ let selectedPhoto='';
+ const normalise=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr');
+ function save(){localStorage.setItem(KEY,JSON.stringify(people));render();}
+ function render(){
+   const q=normalise($('search').value.trim());
+   const shown=people.filter(p=>normalise(p.name).includes(q)).sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr'));
+   $('list').innerHTML='';
+   shown.forEach(p=>{
+     const li=document.createElement('li');
+     const initial=document.createElement('div');initial.className='initial';initial.textContent=(p.name.trim()[0]||'?').toLocaleUpperCase('fr');
+     const name=document.createElement('div');name.className='person';name.textContent=p.name;
+     const del=document.createElement('button');del.className='remove';del.textContent='Supprimer';del.setAttribute('aria-label','Supprimer '+p.name);
+     del.addEventListener('click',()=>{people=people.filter(x=>x.id!==p.id);save();});
+     li.append(initial,name,del);$('list').appendChild(li);
+   });
+   $('count').textContent=people.length+' nom'+(people.length===1?'':'s');
+   $('empty').style.display=shown.length?'none':'block';
+   $('empty').textContent=q?'Aucun résultat pour cette recherche.':'Aucun nom enregistré pour le moment.';
+ }
+ function chooseFile(file){
+   if(!file)return;
+   if(!file.type.startsWith('image/')){$('status').textContent='Veuillez choisir une image.';return;}
+   const reader=new FileReader();
+   reader.onload=()=>{selectedPhoto=reader.result;$('preview').src=selectedPhoto;$('preview').style.display='block';$('status').textContent='Photo chargée. Lisez l’étiquette et saisissez le nom du destinataire dans le champ.';};
+   reader.readAsDataURL(file);
+ }
+ $('camera').addEventListener('change',e=>chooseFile(e.target.files[0]));
+ $('gallery').addEventListener('change',e=>chooseFile(e.target.files[0]));
+ $('add').addEventListener('click',()=>{
+   const name=$('name').value.trim().replace(/\s+/g,' ');
+   if(!name){$('status').textContent='Saisissez d’abord le nom du destinataire.';$('name').focus();return;}
+   const existing=people.find(p=>normalise(p.name)===normalise(name));
+   if(existing){$('status').textContent='Ce nom existe déjà dans la liste.';$('name').focus();return;}
+   people.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),name});
+   save();$('name').value='';$('status').textContent='Nom enregistré et liste classée par ordre alphabétique.';$('name').focus();
+ });
+ $('name').addEventListener('keydown',e=>{if(e.key==='Enter')$('add').click();});
+ $('clear').addEventListener('click',()=>{$('name').value='';$('status').textContent='Champ effacé.';$('name').focus();});
+ $('search').addEventListener('input',render);
+ $('export').addEventListener('click',()=>{
+   if(!people.length){$('status').textContent='La liste est vide : rien à exporter.';return;}
+   const text=people.slice().sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr')).map(p=>p.name).join('\r\n');
+   const blob=new Blob(['\ufeff'+text],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download='liste-destinataires.txt';a.click();URL.revokeObjectURL(url);
+ });
+ $('deleteAll').addEventListener('click',()=>{
+   if(!people.length)return;
+   if(confirm('Supprimer tous les noms enregistrés sur cet appareil ?')){people=[];save();$('status').textContent='La liste a été supprimée.';}
+ });
+ render();
+})();
+</script>
+</body>
+</html>'''
+p.write_text(html,encoding='utf-8')
+print(f'created {p} ({p.stat().st_size} bytes)')
