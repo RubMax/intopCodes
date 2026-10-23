@@ -6,372 +6,486 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Liste Colis</title>
 <style>
-:root{--blue:#1769aa;--green:#16a085}
+:root {
+  --site-primary:#1769aa;
+  --site-secondary:#16a085;
+  color-scheme:light dark;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#eef4f8;color:#183047}
-header{background:var(--blue);color:white;padding:25px 18px}
-header,main{width:100%}
-.head,main{max-width:760px;margin:auto}
-h1{margin:8px 0;font-size:28px}
-header p{margin:0}
-main{padding:16px 14px 30px}
-.panel{background:white;border:1px solid #dce6ee;border-radius:16px;padding:18px;margin-bottom:15px;box-shadow:0 5px 18px #102b4010}
-h2{font-size:18px;margin:0 0 14px}
-.camera-row,.actions{display:flex;gap:10px}
-.camera-row>*{flex:1}
-button,.file-button{font:inherit;font-weight:bold;border:0;border-radius:10px;padding:13px 10px;cursor:pointer;text-align:center;display:block}
-.primary{background:var(--blue);color:white}
-.secondary{background:var(--green);color:white}
-.subtle{background:#eaf1f7;color:#183047}
-button:disabled{opacity:.5;cursor:not-allowed}
-#previewCanvas{display:none;width:100%;height:auto;max-height:500px;object-fit:contain;margin-top:14px;border-radius:10px;background:#111;touch-action:none}
-label.field{display:block;font-weight:bold;margin:16px 0 7px}
-input[type=text],input[type=search]{width:100%;padding:13px;border:1px solid #cbd8e2;border-radius:10px;font:inherit}
-.actions{margin-top:12px}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:light-dark(#eef4f8,#111923);color:light-dark(#183047,#edf4fb)}
+#app{min-height:100vh;width:100%;background-color:light-dark(#eef4f8,#111923)}
+header{background:var(--site-primary);color:#fff;padding:24px 18px 30px}
+.head{max-width:760px;margin:auto}
+.eyebrow{font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;opacity:.85;font-weight:700}
+h1{font-size:2rem;margin:7px 0}
+header p{margin:0;opacity:.9}
+main{max-width:760px;margin:-14px auto 0;padding:0 14px 34px}
+.panel{background:light-dark(#fff,#1c2734);border:1px solid light-dark(#dce6ee,#344354);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 7px 22px #102b4010}
+h2{font-size:1.08rem;margin:0 0 14px}
+.camera-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button,.file-button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px 14px;cursor:pointer;text-align:center}
+.primary{background:var(--site-primary);color:#fff}
+.secondary{background:var(--site-secondary);color:#fff}
+.subtle{background:light-dark(#eaf1f7,#2a3949);color:light-dark(#183047,#edf4fb)}
+button:focus-visible,input:focus-visible{outline:3px solid #f0b429;outline-offset:2px}
+
+/* Photo en grand pour sélectionner le texte sur téléphone */
+#previewCanvas{
+  display:none;
+  width:calc(100% + 36px);
+  max-width:none;
+  height:auto;
+  max-height:none;
+  object-fit:contain;
+  margin:14px -18px 0;
+  border-radius:0;
+  background:#111;
+  touch-action:none;
+  cursor:crosshair;
+}
+
+/* Gros bouton jaune de rotation, facile à toucher */
+#rotatePhoto{
+  display:block;
+  width:100%;
+  background:#f0b429;
+  color:#17212b;
+  font-size:1.05rem;
+  min-height:54px;
+  font-weight:800;
+  border:2px solid #9a6b00;
+  box-shadow:0 3px 0 #9a6b00;
+}
+label{display:block;font-size:.9rem;font-weight:700;margin:15px 0 7px}
+input[type=text],input[type=search]{
+  width:100%;padding:13px;
+  border:1px solid light-dark(#cbd8e2,#455568);
+  border-radius:11px;
+  background:light-dark(#fff,#131c26);
+  color:inherit;font:inherit;
+}
+.actions{display:flex;gap:9px;margin-top:12px}
 .actions button{flex:1}
-.hint{font-size:14px;line-height:1.5;color:#5d7182;margin:12px 0 0}
-.statline{display:flex;justify-content:space-between;align-items:center;gap:10px}
-ul{list-style:none;padding:0;margin:10px 0}
-li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #e7edf2}
-.initial{width:40px;height:40px;flex-shrink:0;border-radius:10px;background:#e1f3ef;color:var(--green);display:grid;place-items:center;font-weight:bold}
-.person{flex:1;overflow-wrap:anywhere;font-weight:bold}
-.remove{padding:8px;background:white;color:#a33}
-.empty{text-align:center;padding:20px;color:#637789}
-.count{font-size:13px;color:#637789}
-footer{text-align:center;font-size:12px;color:#637789;padding:8px}
-@media(max-width:380px){.camera-row,.actions{gap:6px}.file-button,button{font-size:13px;padding:12px 7px}}
+.hint{font-size:.85rem;line-height:1.5;color:light-dark(#5d7182,#b2c0ce);margin:12px 0 0}
+.statline{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.count{font-size:.82rem;color:light-dark(#5d7182,#b2c0ce)}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid light-dark(#e7edf2,#344354)}
+.initial{width:40px;height:40px;border-radius:12px;background:light-dark(#e1f3ef,#173f3a);color:var(--site-secondary);display:grid;place-items:center;font-weight:800;flex-shrink:0}
+.person{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:650}
+.remove{padding:8px 10px;background:transparent;color:light-dark(#a33,#ff9898);font-size:.85rem}
+.empty{text-align:center;padding:22px 8px;color:light-dark(#637789,#b2c0ce)}
+footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padding:6px 0 22px}
+@media(min-width:600px){
+  header{padding-top:32px}
+  main{padding-left:20px;padding-right:20px}
+  .panel{padding:24px}
+}
 </style>
 </head>
 <body>
+<div id="app">
 <header>
   <div class="head">
-    <div>ORGANISATION DES COLIS</div>
+    <div class="eyebrow">Organisation des colis</div>
     <h1>Liste des destinataires</h1>
-    <p>Prenez une photo et sélectionnez le nom avec votre doigt.</p>
+    <p>Prenez une photo, ajoutez le nom et retrouvez-le par ordre alphabétique.</p>
   </div>
 </header>
 
 <main>
 <section class="panel">
-  <h2>① Photographier l'étiquette</h2>
-  <div class="camera-row">
-    <label class="file-button primary" for="camera">📷 Ouvrir la caméra</label>
-    <label class="file-button subtle" for="gallery">🖼️ Choisir une photo</label>
-  </div>
-  <input id="camera" type="file" accept="image/*" capture="environment" hidden>
-  <input id="gallery" type="file" accept="image/*" hidden>
+<h2>① Photographier l’étiquette</h2>
 
-  <canvas id="previewCanvas" aria-label="Photo du colis. Faites glisser votre doigt autour du nom"></canvas>
+<div class="camera-row">
+  <label class="file-button primary" for="camera" style="margin:0">📷 Ouvrir la caméra</label>
+  <label class="file-button subtle" for="gallery" style="margin:0">🖼️ Choisir une photo</label>
+</div>
 
-  <button class="primary" id="readName" style="width:100%;margin-top:12px" disabled>
-    🔎 Lire le texte sélectionné
-  </button>
+<input id="camera" type="file" accept="image/*" capture="environment" hidden>
+<input id="gallery" type="file" accept="image/*" hidden>
 
-  <p class="hint" id="status" aria-live="polite">
-    1. Prenez une photo. 2. Tracez un rectangle avec votre doigt autour du nom.
-    3. Appuyez sur « Lire le texte sélectionné ».
-  </p>
+<button class="subtle" id="rotatePhoto" style="width:100%;margin-top:12px" hidden>
+↻ TOURNER LA PHOTO (90°)
+</button>
 
-  <label class="field" for="name">Nom du destinataire</label>
-  <input id="name" type="text" maxlength="140" placeholder="Ex. : Maria Santos" autocomplete="off">
+<canvas id="previewCanvas" aria-label="Photo du colis : faites glisser votre doigt autour du nom à enregistrer"></canvas>
 
-  <div class="actions">
-    <button class="secondary" id="add">＋ Enregistrer le nom</button>
-    <button class="subtle" id="clear">Effacer</button>
-  </div>
+<button class="primary" id="readName" style="width:100%;margin-top:12px" disabled>
+🔎 Lire le texte sélectionné
+</button>
+
+<p class="hint">Conseil : placez l’étiquette bien à plat, avec une bonne lumière. La photo reste sur cet appareil.</p>
+
+<label for="name">Nom du destinataire</label>
+<input id="name" type="text" maxlength="140" placeholder="Ex. : Maria Santos" autocomplete="off">
+
+<div class="actions">
+  <button class="secondary" id="add">＋ Enregistrer le nom</button>
+  <button class="subtle" id="clear">Effacer</button>
+</div>
+
+<p class="hint" id="status" aria-live="polite">
+Après la photo, faites glisser votre doigt sur le nom à enregistrer pour l’encadrer. Appuyez ensuite sur « Lire le texte sélectionné », vérifiez le résultat puis enregistrez-le.
+</p>
 </section>
 
 <section class="panel">
-  <div class="statline">
-    <h2 style="margin:0">② Liste alphabétique</h2>
-    <span class="count" id="count">0 nom</span>
-  </div>
-  <input id="search" type="search" placeholder="🔎 Rechercher un destinataire">
-  <ul id="list"></ul>
-  <div id="empty" class="empty">Aucun nom enregistré.</div>
-  <div class="actions">
-    <button class="subtle" id="export">Exporter (.txt)</button>
-    <button class="subtle" id="deleteAll">Tout supprimer</button>
-  </div>
+<div class="statline">
+  <h2 style="margin:0">② Liste alphabétique</h2>
+  <span class="count" id="count">0 nom</span>
+</div>
+
+<input id="search" type="search" placeholder="🔎 Rechercher un destinataire…" aria-label="Rechercher un destinataire">
+<ul id="list" style="margin-top:10px"></ul>
+<div id="empty" class="empty">Aucun nom enregistré pour le moment.</div>
+
+<div class="actions">
+  <button class="subtle" id="export">Exporter la liste (.txt)</button>
+  <button class="subtle" id="deleteAll">Tout supprimer</button>
+</div>
 </section>
-<footer>Les noms sont enregistrés dans ce navigateur, sur cet appareil.</footer>
+
+<footer>Les noms sont conservés dans le stockage local de ce navigateur.</footer>
 </main>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 (function(){
-  const $=id=>document.getElementById(id);
-  const KEY='liste_colis_destinataires_v1';
-  let people=[];
-  try{
-    people=JSON.parse(localStorage.getItem(KEY)||'[]');
-    if(!Array.isArray(people))people=[];
-  }catch(e){people=[];}
+ const $=id=>document.getElementById(id);
+ const KEY='liste_colis_destinataires_v1';
 
-  let selectedPhoto='',selection=null,dragStart=null,photoImage=null;
-  const canvas=$('previewCanvas');
-  const ctx=canvas.getContext('2d');
+ let people=[];
+ try{
+   people=JSON.parse(localStorage.getItem(KEY)||'[]');
+   if(!Array.isArray(people))people=[];
+ }catch(e){people=[];}
 
-  const normalise=s=>s.normalize('NFD')
-    .replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr');
+ let selectedPhoto='',selection=null,dragStart=null,photoImage=null,photoRotation=0;
+ const canvas=$('previewCanvas');
+ const ctx=canvas.getContext('2d');
 
-  function save(){
-    try{
-      localStorage.setItem(KEY,JSON.stringify(people));
-      render();
-    }catch(e){
-      $('status').textContent='Stockage indisponible. Vérifiez l’espace du navigateur.';
-    }
-  }
+ const normalise=s=>s.normalize('NFD')
+   .replace(/[\u0300-\u036f]/g,'')
+   .toLocaleLowerCase('fr');
 
-  function render(){
-    const q=normalise($('search').value.trim());
-    const shown=people.filter(p=>normalise(p.name).includes(q))
-      .sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr'));
-    $('list').innerHTML='';
+ function save(){
+   localStorage.setItem(KEY,JSON.stringify(people));
+   render();
+ }
 
-    shown.forEach(p=>{
-      const li=document.createElement('li');
-      const initial=document.createElement('div');
-      initial.className='initial';
-      initial.textContent=(p.name.trim()[0]||'?').toLocaleUpperCase('fr');
+ function render(){
+   const q=normalise($('search').value.trim());
+   const shown=people.filter(p=>normalise(p.name).includes(q))
+     .sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr'));
 
-      const name=document.createElement('div');
-      name.className='person';
-      name.textContent=p.name;
+   $('list').innerHTML='';
 
-      const del=document.createElement('button');
-      del.className='remove';
-      del.textContent='Supprimer';
-      del.setAttribute('aria-label','Supprimer '+p.name);
-      del.addEventListener('click',()=>{
-        people=people.filter(x=>x.id!==p.id);
-        save();
-      });
+   shown.forEach(p=>{
+     const li=document.createElement('li');
 
-      li.append(initial,name,del);
-      $('list').appendChild(li);
-    });
+     const initial=document.createElement('div');
+     initial.className='initial';
+     initial.textContent=(p.name.trim()[0]||'?').toLocaleUpperCase('fr');
 
-    $('count').textContent=people.length+' nom'+(people.length===1?'':'s');
-    $('empty').style.display=shown.length?'none':'block';
-    $('empty').textContent=q?'Aucun résultat.':'Aucun nom enregistré.';
-  }
+     const name=document.createElement('div');
+     name.className='person';
+     name.textContent=p.name;
 
-  function drawPhoto(){
-    if(!photoImage)return;
-    const maxWidth=1400,maxHeight=1800;
-    const scale=Math.min(1,maxWidth/photoImage.naturalWidth,maxHeight/photoImage.naturalHeight);
-    canvas.width=Math.max(1,Math.round(photoImage.naturalWidth*scale));
-    canvas.height=Math.max(1,Math.round(photoImage.naturalHeight*scale));
-    ctx.drawImage(photoImage,0,0,canvas.width,canvas.height);
+     const del=document.createElement('button');
+     del.className='remove';
+     del.textContent='Supprimer';
+     del.setAttribute('aria-label','Supprimer '+p.name);
 
-    if(selection){
-      ctx.save();
-      ctx.strokeStyle='#ffcc00';
-      ctx.lineWidth=Math.max(3,canvas.width/300);
-      ctx.fillStyle='rgba(255,204,0,.2)';
-      ctx.fillRect(selection.x,selection.y,selection.w,selection.h);
-      ctx.strokeRect(selection.x,selection.y,selection.w,selection.h);
-      ctx.restore();
-    }
-  }
+     del.addEventListener('click',()=>{
+       people=people.filter(x=>x.id!==p.id);
+       save();
+     });
 
-  function canvasPoint(e){
-    const r=canvas.getBoundingClientRect();
-    return {
-      x:Math.max(0,Math.min(canvas.width,(e.clientX-r.left)*canvas.width/r.width)),
-      y:Math.max(0,Math.min(canvas.height,(e.clientY-r.top)*canvas.height/r.height))
-    };
-  }
+     li.append(initial,name,del);
+     $('list').appendChild(li);
+   });
 
-  canvas.addEventListener('pointerdown',e=>{
-    if(!photoImage)return;
-    e.preventDefault();
-    canvas.setPointerCapture(e.pointerId);
-    dragStart=canvasPoint(e);
-    selection={x:dragStart.x,y:dragStart.y,w:0,h:0};
-    drawPhoto();
-  });
+   $('count').textContent=people.length+' nom'+(people.length===1?'':'s');
+   $('empty').style.display=shown.length?'none':'block';
+   $('empty').textContent=q
+     ?'Aucun résultat pour cette recherche.'
+     :'Aucun nom enregistré pour le moment.';
+ }
 
-  canvas.addEventListener('pointermove',e=>{
-    if(!dragStart)return;
-    e.preventDefault();
-    const p=canvasPoint(e);
-    selection={
-      x:Math.min(dragStart.x,p.x),
-      y:Math.min(dragStart.y,p.y),
-      w:Math.abs(dragStart.x-p.x),
-      h:Math.abs(dragStart.y-p.y)
-    };
-    drawPhoto();
-  });
+ function drawPhoto(){
+   if(!photoImage)return;
 
-  function finishSelection(){
-    if(!dragStart)return;
-    dragStart=null;
-    if(selection&&selection.w>8&&selection.h>8){
-      $('readName').disabled=false;
-      $('status').textContent='Zone sélectionnée. Appuyez sur « Lire le texte sélectionné ». Vous pouvez refaire la sélection.';
-    }else{
-      selection=null;
-      drawPhoto();
-      $('status').textContent='Sélection trop petite. Entourez le nom complet avec votre doigt.';
-    }
-  }
+   const maxWidth=1600,maxHeight=2400;
+   const scale=Math.min(
+     1,
+     maxWidth/photoImage.naturalWidth,
+     maxHeight/photoImage.naturalHeight
+   );
 
-  canvas.addEventListener('pointerup',finishSelection);
-  canvas.addEventListener('pointercancel',finishSelection);
+   const sourceW=Math.round(photoImage.naturalWidth*scale);
+   const sourceH=Math.round(photoImage.naturalHeight*scale);
 
-  function chooseFile(file){
-    if(!file)return;
-    if(!file.type.startsWith('image/')){
-      $('status').textContent='Veuillez choisir une image.';
-      return;
-    }
+   canvas.width=photoRotation%180===0?sourceW:sourceH;
+   canvas.height=photoRotation%180===0?sourceH:sourceW;
 
-    const reader=new FileReader();
-    reader.onload=()=>{
-      selectedPhoto=reader.result;
-      selection=null;
-      dragStart=null;
-      photoImage=new Image();
-      photoImage.onload=()=>{
-        canvas.style.display='block';
-        drawPhoto();
-        $('readName').disabled=true;
-        $('status').textContent='Photo chargée. Faites glisser votre doigt autour du nom à enregistrer.';
-      };
-      photoImage.onerror=()=>{
-        $('status').textContent='Impossible d’afficher cette photo.';
-      };
-      photoImage.src=selectedPhoto;
-    };
-    reader.readAsDataURL(file);
-  }
+   ctx.save();
+   ctx.translate(canvas.width/2,canvas.height/2);
+   ctx.rotate(photoRotation*Math.PI/180);
+   ctx.drawImage(photoImage,-sourceW/2,-sourceH/2,sourceW,sourceH);
+   ctx.restore();
 
-  $('camera').addEventListener('change',e=>chooseFile(e.target.files[0]));
-  $('gallery').addEventListener('change',e=>chooseFile(e.target.files[0]));
+   if(selection){
+     ctx.save();
+     ctx.strokeStyle='#ffcc00';
+     ctx.lineWidth=Math.max(3,canvas.width/300);
+     ctx.fillStyle='rgba(255,204,0,.18)';
+     ctx.fillRect(selection.x,selection.y,selection.w,selection.h);
+     ctx.strokeRect(selection.x,selection.y,selection.w,selection.h);
+     ctx.restore();
+   }
+ }
 
-  $('readName').addEventListener('click',async()=>{
-    if(!selectedPhoto||!photoImage){
-      $('status').textContent='Prenez d’abord une photo.';
-      return;
-    }
-    if(!selection||selection.w<8||selection.h<8){
-      $('status').textContent='Sélectionnez d’abord le nom avec votre doigt.';
-      return;
-    }
-    if(!window.Tesseract){
-      $('status').textContent='Le module de lecture ne se charge pas. Vérifiez votre connexion Internet.';
-      return;
-    }
+ function canvasPoint(e){
+   const r=canvas.getBoundingClientRect();
+   return {
+     x:Math.max(0,Math.min(canvas.width,(e.clientX-r.left)*canvas.width/r.width)),
+     y:Math.max(0,Math.min(canvas.height,(e.clientY-r.top)*canvas.height/r.height))
+   };
+ }
 
-    const btn=$('readName');
-    btn.disabled=true;
+ canvas.addEventListener('pointerdown',e=>{
+   if(!photoImage)return;
+   e.preventDefault();
+   canvas.setPointerCapture(e.pointerId);
+   dragStart=canvasPoint(e);
+   selection={x:dragStart.x,y:dragStart.y,w:0,h:0};
+   drawPhoto();
+ });
 
-    try{
-      $('status').textContent='Lecture du texte en cours…';
-      const crop=document.createElement('canvas');
-      crop.width=Math.max(1,Math.round(selection.w));
-      crop.height=Math.max(1,Math.round(selection.h));
-      crop.getContext('2d').drawImage(
-        canvas,selection.x,selection.y,selection.w,selection.h,
-        0,0,crop.width,crop.height
-      );
+ canvas.addEventListener('pointermove',e=>{
+   if(!dragStart)return;
+   e.preventDefault();
+   const p=canvasPoint(e);
+   selection={
+     x:Math.min(dragStart.x,p.x),
+     y:Math.min(dragStart.y,p.y),
+     w:Math.abs(p.x-dragStart.x),
+     h:Math.abs(p.y-dragStart.y)
+   };
+   drawPhoto();
+ });
 
-      const result=await Tesseract.recognize(crop,'por+eng+fra',{
-        logger:m=>{
-          if(m.status==='recognizing text'){
-            $('status').textContent='Lecture du texte… '+Math.round((m.progress||0)*100)+' %';
-          }
-        }
-      });
+ function finishSelection(){
+   if(!dragStart)return;
+   dragStart=null;
 
-      const candidate=result.data.text.split(/\r?\n/)
-        .map(s=>s.trim()).filter(Boolean).join(' ')
-        .replace(/\s+/g,' ')
-        .replace(/^(destinat[aá]rio|destinatario|nome|name)\s*[:\-]?\s*/i,'')
-        .replace(/[|]+/g,' ').trim();
+   if(selection&&selection.w>8&&selection.h>8){
+     $('readName').disabled=false;
+     $('status').textContent='Zone sélectionnée. Appuyez sur « Lire le texte sélectionné ». Vous pouvez refaire la sélection en glissant votre doigt sur la photo.';
+   }else{
+     selection=null;
+     drawPhoto();
+     $('status').textContent='Sélection trop petite. Faites glisser votre doigt autour du nom complet.';
+   }
+ }
 
-      if(candidate){
-        $('name').value=candidate;
-        $('name').focus();
-        $('status').textContent='Texte reconnu : « '+candidate+' ». Vérifiez le nom avant de l’enregistrer.';
-      }else{
-        $('status').textContent='Aucun texte reconnu. Sélectionnez plus précisément le nom ou saisissez-le manuellement.';
-      }
-    }catch(e){
-      $('status').textContent='Erreur de lecture. Réessayez avec une photo plus nette.';
-    }finally{
-      btn.disabled=false;
-    }
-  });
+ canvas.addEventListener('pointerup',finishSelection);
+ canvas.addEventListener('pointercancel',finishSelection);
 
-  $('add').addEventListener('click',()=>{
-    const name=$('name').value.trim().replace(/\s+/g,' ');
-    if(!name){
-      $('status').textContent='Saisissez ou reconnaissez un nom avant de l’enregistrer.';
-      $('name').focus();
-      return;
-    }
+ function chooseFile(file){
+   if(!file)return;
 
-    if(people.some(p=>normalise(p.name)===normalise(name))){
-      $('status').textContent='Ce nom existe déjà dans la liste.';
-      $('name').focus();
-      return;
-    }
+   if(!file.type.startsWith('image/')){
+     $('status').textContent='Veuillez choisir une image.';
+     return;
+   }
 
-    people.push({
-      id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
-      name
-    });
-    save();
-    $('name').value='';
-    $('status').textContent='Nom enregistré. La liste est classée par ordre alphabétique.';
-    $('name').focus();
-  });
+   const reader=new FileReader();
 
-  $('name').addEventListener('keydown',e=>{
-    if(e.key==='Enter')$('add').click();
-  });
+   reader.onload=()=>{
+     selectedPhoto=reader.result;
+     selection=null;
+     dragStart=null;
+     photoRotation=0;
+     photoImage=new Image();
 
-  $('clear').addEventListener('click',()=>{
-    $('name').value='';
-    $('status').textContent='Champ effacé.';
-    $('name').focus();
-  });
+     photoImage.onload=()=>{
+       canvas.style.display='block';
+       $('rotatePhoto').hidden=false;
+       drawPhoto();
+       $('readName').disabled=true;
 
-  $('search').addEventListener('input',render);
+       $('rotatePhoto').scrollIntoView({
+         behavior:'smooth',
+         block:'center'
+       });
 
-  $('export').addEventListener('click',()=>{
-    if(!people.length){
-      $('status').textContent='La liste est vide : rien à exporter.';
-      return;
-    }
+       $('status').textContent='Photo chargée. Le bouton jaune « TOURNER LA PHOTO (90°) » est juste au-dessus de la photo. Appuyez dessus autant de fois que nécessaire, puis sélectionnez le nom avec votre doigt.';
+     };
 
-    const content=people.slice()
-      .sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr'))
-      .map(p=>p.name).join('\r\n');
-    const blob=new Blob(['\ufeff'+content],{type:'text/plain;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;
-    a.download='liste-destinataires.txt';
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  });
+     photoImage.onerror=()=>{
+       $('status').textContent='Impossible d’afficher cette photo. Essayez une autre image.';
+     };
 
-  $('deleteAll').addEventListener('click',()=>{
-    if(!people.length)return;
-    if(confirm('Supprimer tous les noms enregistrés sur cet appareil ?')){
-      people=[];
-      save();
-      $('status').textContent='Tous les noms ont été supprimés.';
-    }
-  });
+     photoImage.src=selectedPhoto;
+   };
 
-  render();
+   reader.readAsDataURL(file);
+ }
+
+ $('camera').addEventListener('change',e=>chooseFile(e.target.files[0]));
+ $('gallery').addEventListener('change',e=>chooseFile(e.target.files[0]));
+
+ $('rotatePhoto').addEventListener('click',()=>{
+   if(!photoImage)return;
+
+   photoRotation=(photoRotation+90)%360;
+   selection=null;
+   $('readName').disabled=true;
+   drawPhoto();
+
+   $('status').textContent='Photo tournée de 90°. Appuyez encore sur le bouton jaune si nécessaire, puis sélectionnez le nom avec votre doigt.';
+ });
+
+ $('readName').addEventListener('click',async()=>{
+   if(!selectedPhoto){
+     $('status').textContent='Prenez d’abord une photo du paquet.';
+     return;
+   }
+
+   if(!selection||selection.w<8||selection.h<8){
+     $('status').textContent='Sélectionnez d’abord le nom avec votre doigt en traçant un rectangle autour du texte.';
+     return;
+   }
+
+   if(!window.Tesseract){
+     $('status').textContent='Le module de lecture ne se charge pas. Vérifiez votre connexion Internet puis rechargez la page.';
+     return;
+   }
+
+   const btn=$('readName');
+   btn.disabled=true;
+
+   try{
+     $('status').textContent='Lecture de l’étiquette en cours… cela peut prendre quelques secondes.';
+
+     const crop=document.createElement('canvas');
+     crop.width=Math.round(selection.w);
+     crop.height=Math.round(selection.h);
+
+     crop.getContext('2d').drawImage(
+       canvas,
+       selection.x,selection.y,selection.w,selection.h,
+       0,0,crop.width,crop.height
+     );
+
+     const result=await Tesseract.recognize(crop,'por+eng+fra',{
+       logger:m=>{
+         if(m.status==='recognizing text'){
+           $('status').textContent='Lecture du texte… '+Math.round((m.progress||0)*100)+' %';
+         }
+       }
+     });
+
+     let candidate=result.data.text
+       .split(/\r?\n/)
+       .map(s=>s.trim())
+       .filter(Boolean)
+       .join(' ')
+       .replace(/\s+/g,' ')
+       .replace(/^(destinat[aá]rio|destinatario|nome|name)\s*[:\-]?\s*/i,'')
+       .replace(/[|]+/g,' ')
+       .trim();
+
+     if(candidate){
+       $('name').value=candidate;
+       $('name').focus();
+       $('status').textContent='Nom identifié (vérifiez l’orthographe) : « '+candidate+' ». Appuyez sur « Enregistrer le nom » pour l’ajouter à la liste.';
+     }else{
+       $('status').textContent='Aucun texte reconnu dans la zone sélectionnée. Essayez de sélectionner le nom plus largement et de prendre une photo plus nette, ou saisissez le nom manuellement.';
+     }
+   }catch(err){
+     $('status').textContent='Impossible de lire cette photo. Réessayez avec une image plus nette ou saisissez le nom manuellement.';
+   }finally{
+     btn.disabled=false;
+   }
+ });
+
+ $('add').addEventListener('click',()=>{
+   const name=$('name').value.trim().replace(/\s+/g,' ');
+
+   if(!name){
+     $('status').textContent='Saisissez d’abord le nom du destinataire.';
+     $('name').focus();
+     return;
+   }
+
+   const existing=people.find(p=>normalise(p.name)===normalise(name));
+
+   if(existing){
+     $('status').textContent='Ce nom existe déjà dans la liste.';
+     $('name').focus();
+     return;
+   }
+
+   people.push({
+     id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+     name
+   });
+
+   save();
+   $('name').value='';
+   $('status').textContent='Nom enregistré et liste classée par ordre alphabétique.';
+   $('name').focus();
+ });
+
+ $('name').addEventListener('keydown',e=>{
+   if(e.key==='Enter')$('add').click();
+ });
+
+ $('clear').addEventListener('click',()=>{
+   $('name').value='';
+   $('status').textContent='Champ effacé.';
+   $('name').focus();
+ });
+
+ $('search').addEventListener('input',render);
+
+ $('export').addEventListener('click',()=>{
+   if(!people.length){
+     $('status').textContent='La liste est vide : rien à exporter.';
+     return;
+   }
+
+   const text=people.slice()
+     .sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr'))
+     .map(p=>p.name)
+     .join('\r\n');
+
+   const blob=new Blob(['\ufeff'+text],{type:'text/plain;charset=utf-8'});
+   const url=URL.createObjectURL(blob);
+   const a=document.createElement('a');
+
+   a.href=url;
+   a.download='liste-destinataires.txt';
+   a.click();
+
+   URL.revokeObjectURL(url);
+ });
+
+ $('deleteAll').addEventListener('click',()=>{
+   if(!people.length)return;
+
+   if(confirm('Supprimer tous les noms enregistrés sur cet appareil ?')){
+     people=[];
+     save();
+     $('status').textContent='La liste a été supprimée.';
+   }
+ });
+
+ render();
 })();
 </script>
 </body>
