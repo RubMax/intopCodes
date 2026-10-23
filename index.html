@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Liste Colis</title>
 <meta name="theme-color" content="#1769aa">
-<meta name="description" content="Photographiez les étiquettes de colis, lisez les noms et organisez les destinataires par ordre alphabétique.">
+<meta name="description" content="Liste des destinataires de colis, lecture des noms et exportation en image JPEG.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -16,28 +16,17 @@
 :root {
   --site-primary:#1769aa;
   --site-secondary:#16a085;
-  --site-background:#eef4f8;
-  --site-on-primary:#ffffff;
-  --site-on-secondary:#ffffff;
-  --site-on-background:#183047;
-  --site-font-body:system-ui,-apple-system,"Segoe UI",sans-serif;
-  --site-font-heading:system-ui,-apple-system,"Segoe UI",sans-serif;
-  --site-heading-scale:1;
-  --site-spacing-scale:1;
-  --site-radius-scale:1;
-  --site-decoration-opacity:1;
   color-scheme:light dark;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:var(--site-font-body);background:light-dark(#eef4f8,#111923);color:light-dark(#183047,#edf4fb)}
-#app{min-height:100vh;width:100%;background-color:light-dark(#eef4f8,#111923);border-radius:0}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:light-dark(#eef4f8,#111923);color:light-dark(#183047,#edf4fb)}
 header{background:var(--site-primary);color:#fff;padding:24px 18px 30px}
 .head{max-width:760px;margin:auto}
 .eyebrow{font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;opacity:.85;font-weight:700}
-h1{font-family:var(--site-font-heading);font-size:calc(2rem * var(--site-heading-scale));margin:7px 0}
+h1{font-size:2rem;margin:7px 0}
 header p{margin:0;opacity:.9}
 main{max-width:760px;margin:-14px auto 0;padding:0 14px 34px}
-.panel{background:light-dark(#fff,#1c2734);border:1px solid light-dark(#dce6ee,#344354);border-radius:calc(18px * var(--site-radius-scale));padding:calc(18px * var(--site-spacing-scale));margin-bottom:14px;box-shadow:0 7px 22px #102b4010}
+.panel{background:light-dark(#fff,#1c2734);border:1px solid light-dark(#dce6ee,#344354);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 7px 22px #102b4010}
 h2{font-size:1.08rem;margin:0 0 14px}
 .camera-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 button,.file-button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px 14px;cursor:pointer;text-align:center}
@@ -46,7 +35,7 @@ button,.file-button{font:inherit;font-weight:700;border:0;border-radius:12px;pad
 .subtle{background:light-dark(#eaf1f7,#2a3949);color:light-dark(#183047,#edf4fb)}
 button:focus-visible,input:focus-visible{outline:3px solid #f0b429;outline-offset:2px}
 #installApp{display:block;width:100%;margin-top:14px;background:#fff;color:#1769aa;border:2px solid #fff;font-weight:800}
-#previewCanvas{display:none;width:calc(100% + 36px);max-width:none;height:auto;max-height:none;object-fit:contain;margin:14px -18px 0;border-radius:0;background:#111;touch-action:none;cursor:crosshair}
+#previewCanvas{display:none;width:calc(100% + 36px);max-width:none;height:auto;margin:14px -18px 0;background:#111;touch-action:none;cursor:crosshair}
 #rotatePhoto{display:block;background:#f0b429;color:#17212b;font-size:1.05rem;min-height:54px;font-weight:800;border:2px solid #9a6b00;box-shadow:0 3px 0 #9a6b00}
 label{display:block;font-size:.9rem;font-weight:700;margin:15px 0 7px}
 input[type=text],input[type=search]{width:100%;padding:13px;border:1px solid light-dark(#cbd8e2,#455568);border-radius:11px;background:light-dark(#fff,#131c26);color:inherit;font:inherit}
@@ -59,7 +48,7 @@ ul{list-style:none;margin:0;padding:0}
 li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid light-dark(#e7edf2,#344354)}
 .number{width:34px;height:34px;border-radius:10px;background:var(--site-primary);color:#fff;display:grid;place-items:center;font-weight:800;flex-shrink:0}
 .initial{width:40px;height:40px;border-radius:12px;background:light-dark(#e1f3ef,#173f3a);color:var(--site-secondary);display:grid;place-items:center;font-weight:800;flex-shrink:0}
-.person{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:650}
+.person{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:750;text-transform:uppercase;letter-spacing:.025em}
 .remove{padding:8px 10px;background:transparent;color:light-dark(#a33,#ff9898);font-size:.85rem}
 .empty{text-align:center;padding:22px 8px;color:light-dark(#637789,#b2c0ce)}
 footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padding:6px 0 22px}
@@ -68,7 +57,14 @@ footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padd
 </head>
 <body>
 <div id="app">
-<header><div class="head"><div class="eyebrow">Organisation des colis</div><h1>Liste des destinataires</h1><p>Prenez une photo, ajoutez le nom et retrouvez-le par ordre alphabétique.</p><button id="installApp" type="button">⬇ Installer Liste Colis</button></div></header>
+<header>
+  <div class="head">
+    <div class="eyebrow">Organisation des colis</div>
+    <h1>Liste des destinataires</h1>
+    <p>Prenez une photo, ajoutez le nom et retrouvez-le par ordre alphabétique.</p>
+    <button id="installApp" type="button">⬇ Installer Liste Colis</button>
+  </div>
+</header>
 <main>
 <section class="panel">
 <h2>① Photographier l’étiquette</h2>
@@ -81,187 +77,581 @@ footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padd
 <button class="subtle" id="rotatePhoto" style="width:100%;margin-top:12px" hidden>↻ TOURNER LA PHOTO (90°)</button>
 <canvas id="previewCanvas" aria-label="Photo du colis : faites glisser votre doigt autour du nom à enregistrer"></canvas>
 <button class="primary" id="readName" style="width:100%;margin-top:12px" disabled>🔎 Lire le texte sélectionné</button>
-<p class="hint">Conseil : placez l’étiquette bien à plat, avec une bonne lumière. La photo reste sur cet appareil.</p>
+<p class="hint">Placez l’étiquette bien à plat et avec une bonne lumière. La photo reste sur cet appareil.</p>
 <label for="name">Nom du destinataire</label>
-<input id="name" type="text" maxlength="140" placeholder="Ex. : Maria Santos" autocomplete="off">
+<input id="name" type="text" maxlength="140" placeholder="Ex. : MARIA SANTOS" autocomplete="off">
 <div class="actions">
 <button class="secondary" id="add">＋ Enregistrer le nom</button>
 <button class="subtle" id="clear">Effacer</button>
 </div>
-<p class="hint" id="status" aria-live="polite">Après la photo, faites glisser votre doigt sur le nom à enregistrer pour l’encadrer. Appuyez ensuite sur « Lire le texte sélectionné », vérifiez le résultat puis enregistrez-le.</p>
+<p class="hint" id="status" aria-live="polite">Après la photo, encadrez le nom avec votre doigt. Lisez le texte, vérifiez-le, puis enregistrez-le.</p>
 </section>
+
 <section class="panel">
-<div class="statline"><h2 style="margin:0">② Liste alphabétique</h2><span class="count" id="count">0 nom</span></div>
+<div class="statline">
+<h2 style="margin:0">② Liste alphabétique</h2>
+<span class="count" id="count">0 nom</span>
+</div>
 <input id="search" type="search" placeholder="🔎 Rechercher un destinataire…" aria-label="Rechercher un destinataire">
 <ul id="list" style="margin-top:10px"></ul>
 <div id="empty" class="empty">Aucun nom enregistré pour le moment.</div>
 <div class="actions">
-<button class="subtle" id="export">Exporter la liste (.txt)</button>
+<button class="subtle" id="export">Exporter la liste (JPEG)</button>
 <button class="subtle" id="deleteAll">Tout supprimer</button>
 </div>
 </section>
 <footer>Les noms sont conservés dans le stockage local de ce navigateur.</footer>
 </main>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 (function(){
  const $=id=>document.getElementById(id);
  const KEY='liste_colis_destinataires_v1';
  let installPrompt=null;
+
  const installButton=$('installApp');
- window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;installButton.textContent='⬇ Installer Liste Colis';installButton.style.display='block';});
- installButton.addEventListener('click',async()=>{
-   if(!installPrompt){
-     const manifestLink=document.querySelector('link[rel="manifest"]');
-     let manifestOK=false,swOK=false;
-     try{if(manifestLink){const response=await fetch(manifestLink.href,{cache:'no-store'});if(response.ok){const manifest=await response.json();manifestOK=!!(manifest.name&&manifest.start_url&&manifest.display&&Array.isArray(manifest.icons)&&manifest.icons.length);}}}catch(e){}
-     try{if('serviceWorker' in navigator){const registrations=await navigator.serviceWorker.getRegistrations();swOK=registrations.some(r=>r.active||r.waiting||r.installing);}}catch(e){}
-     $('status').textContent='Chrome ne propose pas encore l’installation automatique. Vérification : manifeste '+(manifestOK?'trouvé':'introuvable ou invalide')+' ; service worker '+(swOK?'actif':'non actif')+'. Vérifiez que manifest.webmanifest, sw.js et les icônes existent à la racine du site HTTPS, puis rechargez la page.';
-     return;
-   }
-   try{installPrompt.prompt();await installPrompt.userChoice;}catch(e){$('status').textContent='Chrome n’a pas pu ouvrir la fenêtre d’installation. Ouvrez le menu ⋮ de Chrome et choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ». ';}
-   installPrompt=null;
+
+ window.addEventListener('beforeinstallprompt',event=>{
+   event.preventDefault();
+   installPrompt=event;
    installButton.style.display='block';
  });
- window.addEventListener('appinstalled',()=>{installButton.style.display='none';$('status').textContent='Liste Colis est installée sur ce téléphone.';});
+
+ installButton.addEventListener('click',async()=>{
+   if(!installPrompt){
+     $('status').textContent='Pour installer, ouvrez le menu ⋮ de Chrome et choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».';
+     return;
+   }
+   try{
+     installPrompt.prompt();
+     await installPrompt.userChoice;
+   }catch(e){}
+   installPrompt=null;
+ });
+
+ window.addEventListener('appinstalled',()=>{
+   installButton.style.display='none';
+   $('status').textContent='Liste Colis est installée sur ce téléphone.';
+ });
+
  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-   window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{$('status').textContent='Le service worker sw.js ne se charge pas. Vérifiez que le fichier existe à la racine du site HTTPS et rechargez la page.';}));
+   window.addEventListener('load',()=>{
+     navigator.serviceWorker.register('./sw.js').catch(()=>{});
+   });
  }
+
  let people=[];
- try{people=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(people))people=[];}catch(e){people=[];}
+ try{
+   people=JSON.parse(localStorage.getItem(KEY)||'[]');
+   if(!Array.isArray(people))people=[];
+ }catch(e){people=[];}
+
  let selectedPhoto='',selection=null,dragStart=null,photoImage=null,photoRotation=0;
  const canvas=$('previewCanvas'),ctx=canvas.getContext('2d');
+
  const normalise=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr');
- function save(){localStorage.setItem(KEY,JSON.stringify(people));render();}
+
+ function save(){
+   localStorage.setItem(KEY,JSON.stringify(people));
+   render();
+ }
+
  function render(){
    const q=normalise($('search').value.trim());
-   const shown=people.filter(p=>normalise(p.name).includes(q)).sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr'));
+   const shown=people
+     .filter(p=>normalise(p.name).includes(q))
+     .sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr'));
+
    $('list').innerHTML='';
+
    shown.forEach((p,index)=>{
      const li=document.createElement('li');
-     const number=document.createElement('div');number.className='number';number.textContent=String(index+1);
-     const initial=document.createElement('div');initial.className='initial';initial.textContent=(p.name.trim()[0]||'?').toLocaleUpperCase('fr');
-     const name=document.createElement('div');name.className='person';name.textContent=p.name;
-     const del=document.createElement('button');del.className='remove';del.textContent='Supprimer';del.setAttribute('aria-label','Supprimer '+p.name);
-     del.addEventListener('click',()=>{people=people.filter(x=>x.id!==p.id);save();});
-     li.append(number,initial,name,del);$('list').appendChild(li);
+
+     const number=document.createElement('div');
+     number.className='number';
+     number.textContent=String(index+1);
+
+     const initial=document.createElement('div');
+     initial.className='initial';
+     initial.textContent=(p.name.trim()[0]||'?').toLocaleUpperCase('fr');
+
+     const name=document.createElement('div');
+     name.className='person';
+     name.textContent=p.name.toLocaleUpperCase('pt-BR');
+
+     const del=document.createElement('button');
+     del.className='remove';
+     del.textContent='Supprimer';
+     del.setAttribute('aria-label','Supprimer '+p.name);
+     del.addEventListener('click',()=>{
+       people=people.filter(x=>x.id!==p.id);
+       save();
+     });
+
+     li.append(number,initial,name,del);
+     $('list').appendChild(li);
    });
+
    $('count').textContent=people.length+' nom'+(people.length===1?'':'s');
    $('empty').style.display=shown.length?'none':'block';
    $('empty').textContent=q?'Aucun résultat pour cette recherche.':'Aucun nom enregistré pour le moment.';
  }
+
  function drawPhoto(){
    if(!photoImage)return;
-   const maxWidth=1600,maxHeight=2400,scale=Math.min(1,maxWidth/photoImage.naturalWidth,maxHeight/photoImage.naturalHeight);
-   const sourceW=Math.round(photoImage.naturalWidth*scale),sourceH=Math.round(photoImage.naturalHeight*scale);
-   canvas.width=photoRotation%180===0?sourceW:sourceH;canvas.height=photoRotation%180===0?sourceH:sourceW;
+
+   const maxWidth=1600,maxHeight=2400;
+   const scale=Math.min(1,maxWidth/photoImage.naturalWidth,maxHeight/photoImage.naturalHeight);
+   const sourceW=Math.round(photoImage.naturalWidth*scale);
+   const sourceH=Math.round(photoImage.naturalHeight*scale);
+
+   canvas.width=photoRotation%180===0?sourceW:sourceH;
+   canvas.height=photoRotation%180===0?sourceH:sourceW;
+
    ctx.save();
    ctx.translate(canvas.width/2,canvas.height/2);
    ctx.rotate(photoRotation*Math.PI/180);
    ctx.drawImage(photoImage,-sourceW/2,-sourceH/2,sourceW,sourceH);
    ctx.restore();
-   if(selection){ctx.save();ctx.strokeStyle='#ffcc00';ctx.lineWidth=Math.max(3,canvas.width/300);ctx.fillStyle='rgba(255,204,0,.18)';ctx.fillRect(selection.x,selection.y,selection.w,selection.h);ctx.strokeRect(selection.x,selection.y,selection.w,selection.h);ctx.restore();}
+
+   if(selection){
+     ctx.save();
+     ctx.strokeStyle='#ffcc00';
+     ctx.lineWidth=Math.max(3,canvas.width/300);
+     ctx.fillStyle='rgba(255,204,0,.18)';
+     ctx.fillRect(selection.x,selection.y,selection.w,selection.h);
+     ctx.strokeRect(selection.x,selection.y,selection.w,selection.h);
+     ctx.restore();
+   }
  }
- function canvasPoint(e){const r=canvas.getBoundingClientRect();return{x:Math.max(0,Math.min(canvas.width,(e.clientX-r.left)*canvas.width/r.width)),y:Math.max(0,Math.min(canvas.height,(e.clientY-r.top)*canvas.height/r.height))};}
+
+ function canvasPoint(e){
+   const r=canvas.getBoundingClientRect();
+   return {
+     x:Math.max(0,Math.min(canvas.width,(e.clientX-r.left)*canvas.width/r.width)),
+     y:Math.max(0,Math.min(canvas.height,(e.clientY-r.top)*canvas.height/r.height))
+   };
+ }
+
  let dragMode='draw',dragEdges=null,dragOrigin=null,selectionOrigin=null;
+
  function finishSelection(){
    if(!dragStart)return;
-   dragStart=null;dragEdges=null;dragOrigin=null;selectionOrigin=null;
-   if(selection&&selection.w>8&&selection.h>8){$('readName').disabled=false;$('status').textContent='Zone sélectionnée. Faites glisser un bord ou un coin du cadre avec votre doigt pour ajuster sa taille. Faites glisser l’intérieur du cadre pour le déplacer, puis lisez le texte.';}
-   else{selection=null;drawPhoto();$('status').textContent='Sélection trop petite. Faites glisser votre doigt autour du nom complet.';}
+   dragStart=null;
+   dragEdges=null;
+   dragOrigin=null;
+   selectionOrigin=null;
+
+   if(selection&&selection.w>8&&selection.h>8){
+     $('readName').disabled=false;
+     $('status').textContent='Zone sélectionnée. Faites glisser un bord ou un coin pour ajuster sa taille. Faites glisser l’intérieur pour déplacer le cadre.';
+   }else{
+     selection=null;
+     drawPhoto();
+     $('status').textContent='Sélection trop petite. Encadrez le nom complet.';
+   }
  }
+
  canvas.addEventListener('pointerdown',e=>{
    if(!photoImage)return;
-   e.preventDefault();canvas.setPointerCapture(e.pointerId);
-   const p=canvasPoint(e),hit=10*Math.max(1,canvas.width/canvas.getBoundingClientRect().width);
-   dragStart=p;dragOrigin=p;selectionOrigin=selection?{...selection}:null;dragMode='draw';dragEdges=null;
+   e.preventDefault();
+   canvas.setPointerCapture(e.pointerId);
+
+   const p=canvasPoint(e);
+   const hit=10*Math.max(1,canvas.width/canvas.getBoundingClientRect().width);
+
+   dragStart=p;
+   dragOrigin=p;
+   selectionOrigin=selection?{...selection}:null;
+   dragMode='draw';
+   dragEdges=null;
+
    if(selection){
-     const left=Math.abs(p.x-selection.x)<=hit,right=Math.abs(p.x-(selection.x+selection.w))<=hit;
-     const top=Math.abs(p.y-selection.y)<=hit,bottom=Math.abs(p.y-(selection.y+selection.h))<=hit;
-     if((left||right||top||bottom)&&(p.x>=selection.x-hit&&p.x<=selection.x+selection.w+hit&&p.y>=selection.y-hit&&p.y<=selection.y+selection.h+hit)){
-       dragMode='resize';dragEdges={left,right,top,bottom};
-     }else if(p.x>=selection.x&&p.x<=selection.x+selection.w&&p.y>=selection.y&&p.y<=selection.y+selection.h){dragMode='move';}
-     else{dragMode='draw';selection=null;}
+     const left=Math.abs(p.x-selection.x)<=hit;
+     const right=Math.abs(p.x-(selection.x+selection.w))<=hit;
+     const top=Math.abs(p.y-selection.y)<=hit;
+     const bottom=Math.abs(p.y-(selection.y+selection.h))<=hit;
+
+     if((left||right||top||bottom)&&
+       p.x>=selection.x-hit&&p.x<=selection.x+selection.w+hit&&
+       p.y>=selection.y-hit&&p.y<=selection.y+selection.h+hit){
+       dragMode='resize';
+       dragEdges={left,right,top,bottom};
+     }else if(
+       p.x>=selection.x&&p.x<=selection.x+selection.w&&
+       p.y>=selection.y&&p.y<=selection.y+selection.h
+     ){
+       dragMode='move';
+     }else{
+       dragMode='draw';
+       selection=null;
+     }
    }
+
    if(dragMode==='draw')selection={x:p.x,y:p.y,w:0,h:0};
    drawPhoto();
  });
+
  canvas.addEventListener('pointermove',e=>{
-   if(!dragStart)return;e.preventDefault();const p=canvasPoint(e),dx=p.x-dragOrigin.x,dy=p.y-dragOrigin.y;
+   if(!dragStart)return;
+   e.preventDefault();
+
+   const p=canvasPoint(e);
+   const dx=p.x-dragOrigin.x;
+   const dy=p.y-dragOrigin.y;
+
    if(dragMode==='draw'){
-     selection={x:Math.min(dragStart.x,p.x),y:Math.min(dragStart.y,p.y),w:Math.abs(p.x-dragStart.x),h:Math.abs(p.y-dragStart.y)};
+     selection={
+       x:Math.min(dragStart.x,p.x),
+       y:Math.min(dragStart.y,p.y),
+       w:Math.abs(p.x-dragStart.x),
+       h:Math.abs(p.y-dragStart.y)
+     };
    }else if(dragMode==='move'&&selectionOrigin){
      const x=Math.max(0,Math.min(canvas.width-selectionOrigin.w,selectionOrigin.x+dx));
      const y=Math.max(0,Math.min(canvas.height-selectionOrigin.h,selectionOrigin.y+dy));
      selection={...selectionOrigin,x,y};
    }else if(dragMode==='resize'&&selectionOrigin&&dragEdges){
-     const min=12;let left=selectionOrigin.x,right=left+selectionOrigin.w,top=selectionOrigin.y,bottom=top+selectionOrigin.h;
+     const min=12;
+     let left=selectionOrigin.x;
+     let right=left+selectionOrigin.w;
+     let top=selectionOrigin.y;
+     let bottom=top+selectionOrigin.h;
+
      if(dragEdges.left)left=Math.max(0,Math.min(right-min,p.x));
      if(dragEdges.right)right=Math.min(canvas.width,Math.max(left+min,p.x));
      if(dragEdges.top)top=Math.max(0,Math.min(bottom-min,p.y));
      if(dragEdges.bottom)bottom=Math.min(canvas.height,Math.max(top+min,p.y));
+
      selection={x:left,y:top,w:right-left,h:bottom-top};
    }
+
    drawPhoto();
  });
- canvas.addEventListener('pointerup',finishSelection);canvas.addEventListener('pointercancel',finishSelection);
+
+ canvas.addEventListener('pointerup',finishSelection);
+ canvas.addEventListener('pointercancel',finishSelection);
+
  function chooseFile(file){
    if(!file)return;
-   if(!file.type.startsWith('image/')){$('status').textContent='Veuillez choisir une image.';return;}
+
+   if(!file.type.startsWith('image/')){
+     $('status').textContent='Veuillez choisir une image.';
+     return;
+   }
+
    const reader=new FileReader();
-   reader.onload=()=>{selectedPhoto=reader.result;selection=null;dragStart=null;photoRotation=0;photoImage=new Image();photoImage.onload=()=>{canvas.style.display='block';$('rotatePhoto').hidden=false;drawPhoto();$('readName').disabled=true;$('rotatePhoto').scrollIntoView({behavior:'smooth',block:'center'});$('status').textContent='Photo chargée. Vous pouvez tourner la photo si nécessaire, puis encadrer le nom avec votre doigt.';};photoImage.onerror=()=>{$('status').textContent='Impossible d’afficher cette photo. Essayez une autre image.';};photoImage.src=selectedPhoto;};
+
+   reader.onload=()=>{
+     selectedPhoto=reader.result;
+     selection=null;
+     dragStart=null;
+     photoRotation=0;
+     photoImage=new Image();
+
+     photoImage.onload=()=>{
+       canvas.style.display='block';
+       $('rotatePhoto').hidden=false;
+       drawPhoto();
+       $('readName').disabled=true;
+       $('rotatePhoto').scrollIntoView({behavior:'smooth',block:'center'});
+       $('status').textContent='Photo chargée. Tournez-la si nécessaire, puis encadrez le nom avec votre doigt.';
+     };
+
+     photoImage.onerror=()=>{
+       $('status').textContent='Impossible d’afficher cette photo. Essayez une autre image.';
+     };
+
+     photoImage.src=selectedPhoto;
+   };
+
    reader.readAsDataURL(file);
  }
+
  $('camera').addEventListener('change',e=>chooseFile(e.target.files[0]));
  $('gallery').addEventListener('change',e=>chooseFile(e.target.files[0]));
- $('rotatePhoto').addEventListener('click',()=>{if(!photoImage)return;photoRotation=(photoRotation+90)%360;selection=null;$('readName').disabled=true;drawPhoto();$('status').textContent='Photo tournée de 90°. Appuyez encore sur le bouton jaune si nécessaire, puis sélectionnez le nom avec votre doigt.';});
- $('readName').addEventListener('click',async()=>{
-   if(!selectedPhoto){$('status').textContent='Prenez d’abord une photo du paquet.';return;}
-   if(!selection||selection.w<8||selection.h<8){$('status').textContent='Sélectionnez d’abord le nom avec votre doigt en traçant un rectangle autour du texte.';return;}
-   if(!window.Tesseract){$('status').textContent='Le module de lecture ne se charge pas. Vérifiez votre connexion Internet puis rechargez la page.';return;}
-   const btn=$('readName');btn.disabled=true;
-   try{
-     $('status').textContent='Lecture de l’étiquette en cours… cela peut prendre quelques secondes.';
-     const crop=document.createElement('canvas');crop.width=Math.round(selection.w);crop.height=Math.round(selection.h);
-     crop.getContext('2d').drawImage(canvas,selection.x,selection.y,selection.w,selection.h,0,0,crop.width,crop.height);
-     const result=await Tesseract.recognize(crop,'por+eng+fra',{
-       logger:m=>{if(m.status==='recognizing text')$('status').textContent='Lecture du texte… '+Math.round((m.progress||0)*100)+' %';}
-     });
-     let candidate=result.data.text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).join(' ').replace(/\s+/g,' ').replace(/^(destinat[aá]rio|destinatario|nome|name)\s*[:\-]?\s*/i,'').replace(/[|]+/g,' ').trim();
-     if(candidate){$('name').value=candidate;$('name').focus();$('status').textContent='Nom identifié (vérifiez l’orthographe) : « '+candidate+' ». Appuyez sur « Enregistrer le nom » pour l’ajouter à la liste.';}
-     else{$('status').textContent='Aucun texte reconnu dans la zone sélectionnée. Essayez de sélectionner le nom plus largement et de prendre une photo plus nette, ou saisissez le nom manuellement.';}
-   }catch(err){$('status').textContent='Impossible de lire cette photo. Réessayez avec une image plus nette ou saisissez le nom manuellement.';}
-   finally{btn.disabled=false;}
+
+ $('rotatePhoto').addEventListener('click',()=>{
+   if(!photoImage)return;
+   photoRotation=(photoRotation+90)%360;
+   selection=null;
+   $('readName').disabled=true;
+   drawPhoto();
+   $('status').textContent='Photo tournée de 90°. Sélectionnez maintenant le nom avec votre doigt.';
  });
+
+ $('readName').addEventListener('click',async()=>{
+   if(!selectedPhoto){
+     $('status').textContent='Prenez d’abord une photo du paquet.';
+     return;
+   }
+
+   if(!selection||selection.w<8||selection.h<8){
+     $('status').textContent='Encadrez d’abord le nom avec votre doigt.';
+     return;
+   }
+
+   if(!window.Tesseract){
+     $('status').textContent='Le module de lecture ne se charge pas. Vérifiez votre connexion Internet.';
+     return;
+   }
+
+   const btn=$('readName');
+   btn.disabled=true;
+
+   try{
+     $('status').textContent='Lecture de l’étiquette en cours…';
+
+     const crop=document.createElement('canvas');
+     crop.width=Math.round(selection.w);
+     crop.height=Math.round(selection.h);
+     crop.getContext('2d').drawImage(
+       canvas,selection.x,selection.y,selection.w,selection.h,
+       0,0,crop.width,crop.height
+     );
+
+     const result=await Tesseract.recognize(crop,'por+eng+fra',{
+       logger:m=>{
+         if(m.status==='recognizing text'){
+           $('status').textContent='Lecture du texte… '+Math.round((m.progress||0)*100)+' %';
+         }
+       }
+     });
+
+     let candidate=result.data.text
+       .split(/\r?\n/)
+       .map(s=>s.trim())
+       .filter(Boolean)
+       .join(' ')
+       .replace(/\s+/g,' ')
+       .replace(/^(destinat[aá]rio|destinatario|nome|name)\s*[:\-]?\s*/i,'')
+       .replace(/[|]+/g,' ')
+       .trim();
+
+     if(candidate){
+       candidate=candidate.toLocaleUpperCase('pt-BR');
+       $('name').value=candidate;
+       $('name').focus();
+       $('status').textContent='Nom identifié en MAJUSCULES. Vérifiez l’orthographe, puis appuyez sur « Enregistrer le nom ».';
+     }else{
+       $('status').textContent='Aucun texte reconnu. Essayez une photo plus nette ou saisissez le nom manuellement.';
+     }
+   }catch(err){
+     $('status').textContent='Impossible de lire cette photo. Réessayez ou saisissez le nom manuellement.';
+   }finally{
+     btn.disabled=false;
+   }
+ });
+
  $('add').addEventListener('click',()=>{
-   const name=$('name').value.trim().replace(/\s+/g,' ');
-   if(!name){$('status').textContent='Saisissez d’abord le nom du destinataire.';$('name').focus();return;}
+   const name=$('name').value.trim().replace(/\s+/g,' ').toLocaleUpperCase('pt-BR');
+
+   if(!name){
+     $('status').textContent='Saisissez d’abord le nom du destinataire.';
+     $('name').focus();
+     return;
+   }
+
    const existing=people.find(p=>normalise(p.name)===normalise(name));
-   if(existing){$('status').textContent='Ce nom existe déjà dans la liste.';$('name').focus();return;}
-   people.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),name});
+
+   if(existing){
+     $('status').textContent='Ce nom existe déjà dans la liste.';
+     $('name').focus();
+     return;
+   }
+
+   people.push({
+     id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+     name
+   });
+
    save();
    $('name').value='';
-   selectedPhoto='';photoImage=null;selection=null;dragStart=null;dragEdges=null;dragOrigin=null;selectionOrigin=null;photoRotation=0;
-   canvas.style.display='none';canvas.width=0;canvas.height=0;
-   $('rotatePhoto').hidden=true;$('readName').disabled=true;
-   $('camera').value='';$('gallery').value='';
-   $('status').textContent='Nom enregistré et liste numérotée par ordre alphabétique. La photo a été effacée. Vous pouvez maintenant ouvrir la caméra pour le colis suivant.';
-   $('name').blur();document.querySelector('label[for="camera"]').scrollIntoView({behavior:'smooth',block:'center'});
+
+   selectedPhoto='';
+   photoImage=null;
+   selection=null;
+   dragStart=null;
+   dragEdges=null;
+   dragOrigin=null;
+   selectionOrigin=null;
+   photoRotation=0;
+
+   canvas.style.display='none';
+   canvas.width=0;
+   canvas.height=0;
+
+   $('rotatePhoto').hidden=true;
+   $('readName').disabled=true;
+   $('camera').value='';
+   $('gallery').value='';
+
+   $('status').textContent='Nom enregistré en MAJUSCULES. La photo a été effacée. Vous pouvez photographier le colis suivant.';
+   $('name').blur();
+   document.querySelector('label[for="camera"]').scrollIntoView({behavior:'smooth',block:'center'});
  });
- $('name').addEventListener('keydown',e=>{if(e.key==='Enter')$('add').click();});
- $('clear').addEventListener('click',()=>{$('name').value='';$('status').textContent='Champ effacé.';$('name').focus();});
+
+ $('name').addEventListener('input',()=>{
+   const start=$('name').selectionStart;
+   const end=$('name').selectionEnd;
+   const upper=$('name').value.toLocaleUpperCase('pt-BR');
+   if($('name').value!==upper){
+     $('name').value=upper;
+     try{$('name').setSelectionRange(start,end);}catch(e){}
+   }
+ });
+
+ $('name').addEventListener('keydown',e=>{
+   if(e.key==='Enter')$('add').click();
+ });
+
+ $('clear').addEventListener('click',()=>{
+   $('name').value='';
+   $('status').textContent='Champ effacé.';
+   $('name').focus();
+ });
+
  $('search').addEventListener('input',render);
+
  $('export').addEventListener('click',()=>{
-   if(!people.length){$('status').textContent='La liste est vide : rien à exporter.';return;}
-   const text=people.slice().sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr')).map(p=>p.name).join('\r\n');
-   const blob=new Blob(['\ufeff'+text],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-   a.href=url;a.download='liste-destinataires.txt';a.click();URL.revokeObjectURL(url);
+   if(!people.length){
+     $('status').textContent='A lista está vazia: não há nomes para exportar.';
+     return;
+   }
+
+   const sorted=people.slice().sort((a,b)=>
+     normalise(a.name).localeCompare(normalise(b.name),'pt-BR')
+   );
+
+   const title='LISTA DE CARTÕES BANCÁRIOS QUE CHEGARAM AO NOSSO ENDEREÇO HÁ ALGUNS DIAS';
+   const width=1200;
+   const pad=72;
+   const titleFont='bold 36px Arial';
+   const nameFont='bold 27px Arial';
+   const lineHeight=58;
+
+   const measure=document.createElement('canvas');
+   const m=measure.getContext('2d');
+   m.font=titleFont;
+
+   const words=title.split(' ');
+   const titleLines=[];
+   let current='';
+
+   words.forEach(word=>{
+     const test=current?current+' '+word:word;
+     if(m.measureText(test).width>width-pad*2&&current){
+       titleLines.push(current);
+       current=word;
+     }else{
+       current=test;
+     }
+   });
+
+   if(current)titleLines.push(current);
+
+   const titleHeight=titleLines.length*48+34;
+   const headerHeight=titleHeight+54;
+   const height=pad+headerHeight+sorted.length*lineHeight+pad;
+
+   const out=document.createElement('canvas');
+   out.width=width;
+   out.height=Math.max(700,height);
+
+   const c=out.getContext('2d');
+   const gradient=c.createLinearGradient(0,0,width,out.height);
+   gradient.addColorStop(0,'#0d3158');
+   gradient.addColorStop(1,'#1769aa');
+
+   c.fillStyle='#eef4f8';
+   c.fillRect(0,0,width,out.height);
+
+   c.fillStyle=gradient;
+   c.fillRect(0,0,width,headerHeight+pad/2);
+
+   c.fillStyle='#16a085';
+   c.fillRect(pad,34,9,titleHeight-4);
+
+   c.fillStyle='#ffffff';
+   c.font=titleFont;
+   c.textBaseline='top';
+
+   titleLines.forEach((line,i)=>{
+     c.fillText(line,pad+28,36+i*48);
+   });
+
+   c.font='bold 20px Arial';
+   c.fillStyle='#d9f7f0';
+   c.fillText('TOTAL: '+sorted.length+' CARTÃO(ÕES)',pad+28,titleHeight+38);
+
+   let y=headerHeight+pad/2+20;
+
+   sorted.forEach((person,index)=>{
+     c.fillStyle='#ffffff';
+     c.beginPath();
+     c.roundRect(pad,y,width-pad*2,lineHeight-8,12);
+     c.fill();
+
+     c.fillStyle='#1769aa';
+     c.beginPath();
+     c.arc(pad+27,y+(lineHeight-8)/2,15,0,Math.PI*2);
+     c.fill();
+
+     c.fillStyle='#ffffff';
+     c.font='bold 18px Arial';
+     c.textAlign='center';
+     c.textBaseline='middle';
+     c.fillText(String(index+1),pad+27,y+(lineHeight-8)/2);
+
+     c.textAlign='left';
+     c.textBaseline='middle';
+     c.fillStyle='#183047';
+     c.font=nameFont;
+
+     let displayName=person.name.toLocaleUpperCase('pt-BR');
+     while(c.measureText(displayName).width>width-pad*2-100&&displayName.length>4){
+       displayName=displayName.slice(0,-2)+'…';
+     }
+
+     c.fillText(displayName,pad+58,y+(lineHeight-8)/2);
+     y+=lineHeight;
+   });
+
+   c.fillStyle='#637789';
+   c.font='16px Arial';
+   c.textAlign='center';
+   c.textBaseline='bottom';
+   c.fillText('LISTA DE CONTROLE DE DESTINATÁRIOS',width/2,out.height-18);
+
+   out.toBlob(blob=>{
+     if(!blob){
+       $('status').textContent='Não foi possível criar a imagem JPEG. Tente novamente.';
+       return;
+     }
+
+     const url=URL.createObjectURL(blob);
+     const a=document.createElement('a');
+     a.href=url;
+     a.download='lista-cartoes-bancarios.jpeg';
+     a.click();
+
+     setTimeout(()=>URL.revokeObjectURL(url),1000);
+     $('status').textContent='Lista exportada como imagem JPEG, com título e nomes em maiúsculas.';
+   },'image/jpeg',0.95);
  });
+
  $('deleteAll').addEventListener('click',()=>{
    if(!people.length)return;
-   if(confirm('Supprimer tous les noms enregistrés sur cet appareil ?')){people=[];save();$('status').textContent='La liste a été supprimée.';}
+
+   if(confirm('Supprimer tous les noms enregistrés sur cet appareil ?')){
+     people=[];
+     save();
+     $('status').textContent='La liste a été supprimée.';
+   }
  });
+
  render();
 })();
 </script>
