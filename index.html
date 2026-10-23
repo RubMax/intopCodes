@@ -47,8 +47,6 @@ button,.file-button{font:inherit;font-weight:700;border:0;border-radius:12px;pad
 button:focus-visible,input:focus-visible{outline:3px solid #f0b429;outline-offset:2px}
 #installApp{display:block;width:100%;margin-top:14px;background:#fff;color:#1769aa;border:2px solid #fff;font-weight:800}
 #previewCanvas{display:none;width:calc(100% + 36px);max-width:none;height:auto;max-height:none;object-fit:contain;margin:14px -18px 0;border-radius:0;background:#111;touch-action:none;cursor:crosshair}
-#selectionTools{display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-#selectionTools button{min-height:48px}
 #rotatePhoto{display:block;background:#f0b429;color:#17212b;font-size:1.05rem;min-height:54px;font-weight:800;border:2px solid #9a6b00;box-shadow:0 3px 0 #9a6b00}
 label{display:block;font-size:.9rem;font-weight:700;margin:15px 0 7px}
 input[type=text],input[type=search]{width:100%;padding:13px;border:1px solid light-dark(#cbd8e2,#455568);border-radius:11px;background:light-dark(#fff,#131c26);color:inherit;font:inherit}
@@ -59,6 +57,7 @@ input[type=text],input[type=search]{width:100%;padding:13px;border:1px solid lig
 .count{font-size:.82rem;color:light-dark(#5d7182,#b2c0ce)}
 ul{list-style:none;margin:0;padding:0}
 li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid light-dark(#e7edf2,#344354)}
+.number{width:34px;height:34px;border-radius:10px;background:var(--site-primary);color:#fff;display:grid;place-items:center;font-weight:800;flex-shrink:0}
 .initial{width:40px;height:40px;border-radius:12px;background:light-dark(#e1f3ef,#173f3a);color:var(--site-secondary);display:grid;place-items:center;font-weight:800;flex-shrink:0}
 .person{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:650}
 .remove{padding:8px 10px;background:transparent;color:light-dark(#a33,#ff9898);font-size:.85rem}
@@ -81,10 +80,6 @@ footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padd
 <input id="gallery" type="file" accept="image/*" hidden>
 <button class="subtle" id="rotatePhoto" style="width:100%;margin-top:12px" hidden>↻ TOURNER LA PHOTO (90°)</button>
 <canvas id="previewCanvas" aria-label="Photo du colis : faites glisser votre doigt autour du nom à enregistrer"></canvas>
-<div id="selectionTools" aria-label="Ajuster le cadre de sélection">
-<button class="secondary" id="expandSelection" type="button">＋ Agrandir le cadre</button>
-<button class="subtle" id="shrinkSelection" type="button">－ Réduire le cadre</button>
-</div>
 <button class="primary" id="readName" style="width:100%;margin-top:12px" disabled>🔎 Lire le texte sélectionné</button>
 <p class="hint">Conseil : placez l’étiquette bien à plat, avec une bonne lumière. La photo reste sur cet appareil.</p>
 <label for="name">Nom du destinataire</label>
@@ -143,13 +138,14 @@ footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padd
    const q=normalise($('search').value.trim());
    const shown=people.filter(p=>normalise(p.name).includes(q)).sort((a,b)=>normalise(a.name).localeCompare(normalise(b.name),'fr'));
    $('list').innerHTML='';
-   shown.forEach(p=>{
+   shown.forEach((p,index)=>{
      const li=document.createElement('li');
+     const number=document.createElement('div');number.className='number';number.textContent=String(index+1);
      const initial=document.createElement('div');initial.className='initial';initial.textContent=(p.name.trim()[0]||'?').toLocaleUpperCase('fr');
      const name=document.createElement('div');name.className='person';name.textContent=p.name;
      const del=document.createElement('button');del.className='remove';del.textContent='Supprimer';del.setAttribute('aria-label','Supprimer '+p.name);
      del.addEventListener('click',()=>{people=people.filter(x=>x.id!==p.id);save();});
-     li.append(initial,name,del);$('list').appendChild(li);
+     li.append(number,initial,name,del);$('list').appendChild(li);
    });
    $('count').textContent=people.length+' nom'+(people.length===1?'':'s');
    $('empty').style.display=shown.length?'none':'block';
@@ -168,34 +164,58 @@ footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padd
    if(selection){ctx.save();ctx.strokeStyle='#ffcc00';ctx.lineWidth=Math.max(3,canvas.width/300);ctx.fillStyle='rgba(255,204,0,.18)';ctx.fillRect(selection.x,selection.y,selection.w,selection.h);ctx.strokeRect(selection.x,selection.y,selection.w,selection.h);ctx.restore();}
  }
  function canvasPoint(e){const r=canvas.getBoundingClientRect();return{x:Math.max(0,Math.min(canvas.width,(e.clientX-r.left)*canvas.width/r.width)),y:Math.max(0,Math.min(canvas.height,(e.clientY-r.top)*canvas.height/r.height))};}
- canvas.addEventListener('pointerdown',e=>{if(!photoImage)return;e.preventDefault();canvas.setPointerCapture(e.pointerId);dragStart=canvasPoint(e);selection={x:dragStart.x,y:dragStart.y,w:0,h:0};drawPhoto();});
- canvas.addEventListener('pointermove',e=>{if(!dragStart)return;e.preventDefault();const p=canvasPoint(e);selection={x:Math.min(dragStart.x,p.x),y:Math.min(dragStart.y,p.y),w:Math.abs(p.x-dragStart.x),h:Math.abs(p.y-dragStart.y)};drawPhoto();});
- function finishSelection(){if(!dragStart)return;dragStart=null;if(selection&&selection.w>8&&selection.h>8){$('readName').disabled=false;$('selectionTools').style.display='grid';$('status').textContent='Zone sélectionnée. Utilisez « Agrandir le cadre » ou « Réduire le cadre » pour ajuster la zone, puis lisez le texte.';}else{selection=null;$('selectionTools').style.display='none';drawPhoto();$('status').textContent='Sélection trop petite. Faites glisser votre doigt autour du nom complet.';}}
- function adjustSelection(factor){
-   if(!selection||!photoImage)return;
-   const minSize=12;
-   const centerX=selection.x+selection.w/2,centerY=selection.y+selection.h/2;
-   const maxW=Math.min(2*centerX,2*(canvas.width-centerX));
-   const maxH=Math.min(2*centerY,2*(canvas.height-centerY));
-   const newW=Math.max(minSize,Math.min(maxW,selection.w*factor));
-   const newH=Math.max(minSize,Math.min(maxH,selection.h*factor));
-   selection={x:centerX-newW/2,y:centerY-newH/2,w:newW,h:newH};
-   drawPhoto();
-   $('status').textContent=factor>1?'Cadre agrandi. Ajustez encore si nécessaire, puis lisez le texte.':'Cadre réduit. Ajustez encore si nécessaire, puis lisez le texte.';
+ let dragMode='draw',dragEdges=null,dragOrigin=null,selectionOrigin=null;
+ function finishSelection(){
+   if(!dragStart)return;
+   dragStart=null;dragEdges=null;dragOrigin=null;selectionOrigin=null;
+   if(selection&&selection.w>8&&selection.h>8){$('readName').disabled=false;$('status').textContent='Zone sélectionnée. Faites glisser un bord ou un coin du cadre avec votre doigt pour ajuster sa taille. Faites glisser l’intérieur du cadre pour le déplacer, puis lisez le texte.';}
+   else{selection=null;drawPhoto();$('status').textContent='Sélection trop petite. Faites glisser votre doigt autour du nom complet.';}
  }
- $('expandSelection').addEventListener('click',()=>adjustSelection(1.15));
- $('shrinkSelection').addEventListener('click',()=>adjustSelection(0.85));
+ canvas.addEventListener('pointerdown',e=>{
+   if(!photoImage)return;
+   e.preventDefault();canvas.setPointerCapture(e.pointerId);
+   const p=canvasPoint(e),hit=10*Math.max(1,canvas.width/canvas.getBoundingClientRect().width);
+   dragStart=p;dragOrigin=p;selectionOrigin=selection?{...selection}:null;dragMode='draw';dragEdges=null;
+   if(selection){
+     const left=Math.abs(p.x-selection.x)<=hit,right=Math.abs(p.x-(selection.x+selection.w))<=hit;
+     const top=Math.abs(p.y-selection.y)<=hit,bottom=Math.abs(p.y-(selection.y+selection.h))<=hit;
+     if((left||right||top||bottom)&&(p.x>=selection.x-hit&&p.x<=selection.x+selection.w+hit&&p.y>=selection.y-hit&&p.y<=selection.y+selection.h+hit)){
+       dragMode='resize';dragEdges={left,right,top,bottom};
+     }else if(p.x>=selection.x&&p.x<=selection.x+selection.w&&p.y>=selection.y&&p.y<=selection.y+selection.h){dragMode='move';}
+     else{dragMode='draw';selection=null;}
+   }
+   if(dragMode==='draw')selection={x:p.x,y:p.y,w:0,h:0};
+   drawPhoto();
+ });
+ canvas.addEventListener('pointermove',e=>{
+   if(!dragStart)return;e.preventDefault();const p=canvasPoint(e),dx=p.x-dragOrigin.x,dy=p.y-dragOrigin.y;
+   if(dragMode==='draw'){
+     selection={x:Math.min(dragStart.x,p.x),y:Math.min(dragStart.y,p.y),w:Math.abs(p.x-dragStart.x),h:Math.abs(p.y-dragStart.y)};
+   }else if(dragMode==='move'&&selectionOrigin){
+     const x=Math.max(0,Math.min(canvas.width-selectionOrigin.w,selectionOrigin.x+dx));
+     const y=Math.max(0,Math.min(canvas.height-selectionOrigin.h,selectionOrigin.y+dy));
+     selection={...selectionOrigin,x,y};
+   }else if(dragMode==='resize'&&selectionOrigin&&dragEdges){
+     const min=12;let left=selectionOrigin.x,right=left+selectionOrigin.w,top=selectionOrigin.y,bottom=top+selectionOrigin.h;
+     if(dragEdges.left)left=Math.max(0,Math.min(right-min,p.x));
+     if(dragEdges.right)right=Math.min(canvas.width,Math.max(left+min,p.x));
+     if(dragEdges.top)top=Math.max(0,Math.min(bottom-min,p.y));
+     if(dragEdges.bottom)bottom=Math.min(canvas.height,Math.max(top+min,p.y));
+     selection={x:left,y:top,w:right-left,h:bottom-top};
+   }
+   drawPhoto();
+ });
  canvas.addEventListener('pointerup',finishSelection);canvas.addEventListener('pointercancel',finishSelection);
  function chooseFile(file){
    if(!file)return;
    if(!file.type.startsWith('image/')){$('status').textContent='Veuillez choisir une image.';return;}
    const reader=new FileReader();
-   reader.onload=()=>{selectedPhoto=reader.result;selection=null;dragStart=null;photoRotation=0;photoImage=new Image();photoImage.onload=()=>{canvas.style.display='block';$('rotatePhoto').hidden=false;$('selectionTools').style.display='none';drawPhoto();$('readName').disabled=true;$('rotatePhoto').scrollIntoView({behavior:'smooth',block:'center'});$('status').textContent='Photo chargée. Le bouton jaune « TOURNER LA PHOTO (90°) » est juste au-dessus de la photo. Appuyez dessus autant de fois que nécessaire, puis sélectionnez le nom avec votre doigt.';};photoImage.onerror=()=>{$('status').textContent='Impossible d’afficher cette photo. Essayez une autre image.';};photoImage.src=selectedPhoto;};
+   reader.onload=()=>{selectedPhoto=reader.result;selection=null;dragStart=null;photoRotation=0;photoImage=new Image();photoImage.onload=()=>{canvas.style.display='block';$('rotatePhoto').hidden=false;drawPhoto();$('readName').disabled=true;$('rotatePhoto').scrollIntoView({behavior:'smooth',block:'center'});$('status').textContent='Photo chargée. Vous pouvez tourner la photo si nécessaire, puis encadrer le nom avec votre doigt.';};photoImage.onerror=()=>{$('status').textContent='Impossible d’afficher cette photo. Essayez une autre image.';};photoImage.src=selectedPhoto;};
    reader.readAsDataURL(file);
  }
  $('camera').addEventListener('change',e=>chooseFile(e.target.files[0]));
  $('gallery').addEventListener('change',e=>chooseFile(e.target.files[0]));
- $('rotatePhoto').addEventListener('click',()=>{if(!photoImage)return;photoRotation=(photoRotation+90)%360;selection=null;$('selectionTools').style.display='none';$('readName').disabled=true;drawPhoto();$('status').textContent='Photo tournée de 90°. Appuyez encore sur le bouton jaune si nécessaire, puis sélectionnez le nom avec votre doigt.';});
+ $('rotatePhoto').addEventListener('click',()=>{if(!photoImage)return;photoRotation=(photoRotation+90)%360;selection=null;$('readName').disabled=true;drawPhoto();$('status').textContent='Photo tournée de 90°. Appuyez encore sur le bouton jaune si nécessaire, puis sélectionnez le nom avec votre doigt.';});
  $('readName').addEventListener('click',async()=>{
    if(!selectedPhoto){$('status').textContent='Prenez d’abord une photo du paquet.';return;}
    if(!selection||selection.w<8||selection.h<8){$('status').textContent='Sélectionnez d’abord le nom avec votre doigt en traçant un rectangle autour du texte.';return;}
@@ -222,9 +242,12 @@ footer{text-align:center;font-size:.78rem;color:light-dark(#637789,#b2c0ce);padd
    people.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),name});
    save();
    $('name').value='';
-   $('status').textContent='Nom enregistré et liste classée par ordre alphabétique. Vous pouvez maintenant prendre la photo du colis suivant.';
-   $('name').blur();
-   document.querySelector('label[for="camera"]').scrollIntoView({behavior:'smooth',block:'center'});
+   selectedPhoto='';photoImage=null;selection=null;dragStart=null;dragEdges=null;dragOrigin=null;selectionOrigin=null;photoRotation=0;
+   canvas.style.display='none';canvas.width=0;canvas.height=0;
+   $('rotatePhoto').hidden=true;$('readName').disabled=true;
+   $('camera').value='';$('gallery').value='';
+   $('status').textContent='Nom enregistré et liste numérotée par ordre alphabétique. La photo a été effacée. Vous pouvez maintenant ouvrir la caméra pour le colis suivant.';
+   $('name').blur();document.querySelector('label[for="camera"]').scrollIntoView({behavior:'smooth',block:'center'});
  });
  $('name').addEventListener('keydown',e=>{if(e.key==='Enter')$('add').click();});
  $('clear').addEventListener('click',()=>{$('name').value='';$('status').textContent='Champ effacé.';$('name').focus();});
